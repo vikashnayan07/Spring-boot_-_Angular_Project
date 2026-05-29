@@ -1,0 +1,322 @@
+<section class="enterprise-page animate-fade-in-up activity-center-page">
+  <header class="enterprise-page-header">
+    <div>
+      <button type="button" class="back-btn mb-3" (click)="goBack()">
+        <span aria-hidden="true">←</span>
+        <span>Back to Dashboard</span>
+      </button>
+      <p class="enterprise-page-eyebrow">Enterprise observability</p>
+      <h1 class="enterprise-page-title gradient-text">
+        System Activity Intelligence Center
+      </h1>
+      <p class="enterprise-page-copy">
+        Track operational actions across auth, admin, engineer, and operator
+        workflows in one command-grade audit view.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="enterprise-btn-secondary"
+      (click)="loadCenter()"
+      [disabled]="loading"
+    >
+      <span [ngClass]="{ 'animate-spin': loading }">SYNC</span>
+      <span>{{ loading ? "Refreshing" : "Refresh feed" }}</span>
+    </button>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Actions Today</p>
+          <div class="enterprise-kpi-value">{{ summary.actionsToday }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">AT</span>
+      </div>
+      <p class="enterprise-kpi-meta">Total system actions captured today</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Success Rate</p>
+          <div class="enterprise-kpi-value">{{ summary.successRate }}%</div>
+        </div>
+        <span class="enterprise-kpi-icon">SR</span>
+      </div>
+      <p class="enterprise-kpi-meta">Successful actions vs total actions</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Failed Actions</p>
+          <div class="enterprise-kpi-value">{{ summary.failedActions }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">FA</span>
+      </div>
+      <p class="enterprise-kpi-meta">Action failures logged today</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Active Users</p>
+          <div class="enterprise-kpi-value">{{ summary.activeUsers }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">AU</span>
+      </div>
+      <p class="enterprise-kpi-meta">Unique users active today</p>
+    </article>
+  </div>
+
+  <div class="enterprise-grid-2 activity-top-grid">
+    <section class="enterprise-panel activity-feed-panel">
+      <div class="activity-panel-head">
+        <div>
+          <h2 class="enterprise-panel-title">Live Activity Feed</h2>
+          <p class="enterprise-page-copy">
+            Animated chronological view of the latest enterprise actions.
+          </p>
+        </div>
+        <span class="enterprise-status"
+          ><span class="enterprise-status-dot"></span>Live</span
+        >
+      </div>
+
+      <div class="activity-feed">
+        <article
+          class="activity-feed-item"
+          *ngFor="let log of liveFeed; let i = index"
+          [style.animationDelay.ms]="i * 80"
+        >
+          <span class="activity-feed-dot"></span>
+          <div class="activity-feed-card glass-card">
+            <div class="activity-feed-card-head">
+              <div>
+                <strong>{{ log.empName || "System" }}</strong>
+                <p>{{ roleLabel(log.roleId) }} · {{ log.email || "n/a" }}</p>
+              </div>
+              <span
+                class="activity-status-pill"
+                [ngClass]="statusClass(log.status)"
+                >{{ log.status || "UNKNOWN" }}</span
+              >
+            </div>
+            <p class="activity-feed-action">{{ log.action }}</p>
+            <p class="activity-feed-message">{{ log.message }}</p>
+            <div class="activity-feed-meta">
+              <span>{{ log.createdAt | date: "MMM d, y · HH:mm:ss" }}</span>
+              <span
+                class="activity-action-tag"
+                [ngClass]="actionClass(log.action)"
+                >{{ log.action }}</span
+              >
+            </div>
+          </div>
+        </article>
+
+        <div *ngIf="!liveFeed.length && !loading" class="activity-empty-state">
+          No audit entries available yet.
+        </div>
+      </div>
+    </section>
+
+    <section class="enterprise-panel activity-filter-panel">
+      <h2 class="enterprise-panel-title">Filters</h2>
+      <p class="enterprise-page-copy">
+        Refine the audit view by date, role, status, and action type.
+      </p>
+
+      <div class="activity-filter-grid">
+        <label>
+          <span>Date</span>
+          <input
+            type="date"
+            [(ngModel)]="filters.date"
+            class="input !min-h-[44px] !pl-4"
+          />
+        </label>
+
+        <label>
+          <span>Role</span>
+          <select [(ngModel)]="filters.role" class="input !min-h-[44px] !pl-4">
+            <option *ngFor="let role of roleOptions" [ngValue]="role.value">
+              {{ role.label }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select
+            [(ngModel)]="filters.status"
+            class="input !min-h-[44px] !pl-4"
+          >
+            <option *ngFor="let status of statusOptions" [ngValue]="status">
+              {{ status }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Action Type</span>
+          <select
+            [(ngModel)]="filters.action"
+            class="input !min-h-[44px] !pl-4"
+          >
+            <option *ngFor="let action of actionOptions" [ngValue]="action">
+              {{ action }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div class="activity-filter-actions">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="clearFilters()"
+        >
+          Clear Filters
+        </button>
+        <button type="button" class="enterprise-btn" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <section class="enterprise-panel">
+    <div class="activity-table-head">
+      <div>
+        <h2 class="enterprise-panel-title">Enterprise Log Table</h2>
+        <p class="enterprise-page-copy">
+          Timestamp, employee, role, action, status, and message with VM-safe
+          pagination.
+        </p>
+      </div>
+
+      <select
+        [ngModel]="rowsPerPage"
+        (ngModelChange)="changeRowsPerPage($event)"
+        class="input !min-h-[44px] !pl-4 activity-page-size"
+      >
+        <option [ngValue]="10">10 rows</option>
+        <option [ngValue]="20">20 rows</option>
+        <option [ngValue]="50">50 rows</option>
+      </select>
+    </div>
+
+    <div *ngIf="loading" class="skeleton-wrapper">
+      <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4, 5]">
+        <span
+          class="skeleton-cell"
+          *ngFor="let cell of [1, 2, 3, 4, 5, 6]"
+        ></span>
+      </div>
+    </div>
+
+    <div
+      *ngIf="!loading"
+      class="overflow-hidden rounded-2xl border border-th-border"
+    >
+      <div class="overflow-x-auto">
+        <table class="data-table min-w-[1180px]">
+          <thead>
+            <tr>
+              <th (click)="sortBy('timestamp')">Timestamp</th>
+              <th (click)="sortBy('logId')">Employee</th>
+              <th (click)="sortBy('roleId')">Role</th>
+              <th (click)="sortBy('action')">Action</th>
+              <th (click)="sortBy('status')">Status</th>
+              <th (click)="sortBy('message')">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let log of sortedLogs; trackBy: trackByLogId"
+              class="table-row"
+            >
+              <td class="font-data">
+                {{ log.createdAt | date: "MMM d, y HH:mm:ss" }}
+              </td>
+              <td>
+                <div class="activity-employee-cell">
+                  <span class="fault-id">EMP-{{ log.empId || "—" }}</span>
+                  <span>{{ log.empName || "Unknown" }}</span>
+                </div>
+              </td>
+              <td>{{ roleLabel(log.roleId) }}</td>
+              <td>
+                <span
+                  class="activity-action-tag"
+                  [ngClass]="actionClass(log.action)"
+                  >{{ log.action }}</span
+                >
+              </td>
+              <td>
+                <span
+                  class="activity-status-pill"
+                  [ngClass]="statusClass(log.status)"
+                  >{{ log.status }}</span
+                >
+              </td>
+              <td class="max-w-[520px] truncate">{{ log.message }}</td>
+            </tr>
+            <tr *ngIf="!logs.length">
+              <td colspan="6" class="py-12 text-center text-th-muted">
+                No activity entries match the selected filters.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-bar" *ngIf="totalItems > 0">
+        <span class="text-sm font-bold text-th-muted">
+          Showing {{ showingStart(totalItems, page) }}-{{
+            showingEnd(totalItems, page)
+          }}
+          of {{ totalItems }} entries
+        </span>
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="page-btn"
+            (click)="changePage(page - 1)"
+            [disabled]="page === 1"
+          >
+            Prev
+          </button>
+          <button
+            type="button"
+            class="page-btn"
+            *ngFor="let item of pages()"
+            [disabled]="item === '...'"
+            [ngClass]="
+              item === '...'
+                ? 'page-inactive'
+                : item === page
+                  ? 'page-active'
+                  : 'page-inactive'
+            "
+            (click)="changePageFromItem(item)"
+          >
+            {{ item }}
+          </button>
+          <button
+            type="button"
+            class="page-btn"
+            (click)="changePage(page + 1)"
+            [disabled]="page === totalPages"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

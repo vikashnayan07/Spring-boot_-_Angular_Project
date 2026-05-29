@@ -1,0 +1,60 @@
+<div class="enterprise-shell" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <button type="button" class="sidebar-mobile-toggle" (click)="toggleSidebar()" aria-label="Open sidebar menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <aside class="enterprise-sidebar">
+    <button type="button" class="sidebar-collapse-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <a routerLink="/admin/dashboard" class="enterprise-brand" aria-label="MachCare admin dashboard">
+      <span class="enterprise-brand-mark">MC</span>
+      <span class="enterprise-brand-text">
+        <span class="enterprise-brand-title gradient-text">MachCare</span>
+        <span class="enterprise-brand-subtitle">Admin command center</span>
+      </span>
+    </a>
+
+    <nav class="enterprise-nav" aria-label="Admin navigation">
+      <a
+        routerLink="/admin/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="enterprise-nav-link"
+        title="Dashboard"
+      >
+        <span class="enterprise-nav-icon">DB</span>
+        <span class="enterprise-nav-label">Dashboard</span>
+      </a>
+
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        class="enterprise-nav-link"
+        [title]="item.name"
+      >
+        <span class="enterprise-nav-icon">{{ item.name.slice(0, 2).toUpperCase() }}</span>
+        <span class="enterprise-nav-label">{{ item.name }}</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="enterprise-main">
+    <app-navbar
+      portalTitle="Admin Portal"
+      [navLinks]="topNavLinks"
+    ></app-navbar>
+
+    <div class="enterprise-content">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
+
+<div class="enterprise-layout-footer">
+  <app-footer></app-footer>
+</div>

@@ -1,0 +1,411 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <button type="button" class="back-btn mb-3" (click)="goBack()">
+        <span aria-hidden="true">←</span>
+        <span>{{ backLabel }}</span>
+      </button>
+      <p class="enterprise-page-eyebrow">Maintenance execution</p>
+      <h1 class="enterprise-page-title gradient-text">
+        Engineer Task Workspace
+      </h1>
+      <p class="enterprise-page-copy">
+        Accept work orders, update progress, record parts usage and complete
+        repairs.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="enterprise-btn-secondary"
+      (click)="loadMyTasks()"
+      [disabled]="loading"
+    >
+      <span [ngClass]="{ 'animate-spin': loading }">SYNC</span>
+      <span>{{ loading ? "Loading" : "Refresh tasks" }}</span>
+    </button>
+  </header>
+
+  <div *ngIf="loading" class="skeleton-wrapper">
+    <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4]">
+      <span class="skeleton-cell" *ngFor="let cell of [1, 2, 3, 4, 5]"></span>
+    </div>
+  </div>
+
+  <div
+    *ngIf="!loading && visibleTasks.length === 0"
+    class="enterprise-panel engineer-empty"
+  >
+    <span class="enterprise-kpi-icon">WO</span>
+    <h2 class="enterprise-panel-title">No assigned work orders</h2>
+    <p class="enterprise-page-copy">
+      Auto-assigned maintenance tasks will appear here.
+    </p>
+  </div>
+
+  <div *ngIf="!loading && visibleTasks.length > 0" class="engineer-task-grid">
+    <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p class="enterprise-page-eyebrow">Sort tasks</p>
+        <h2 class="enterprise-panel-title">Active Work Orders</h2>
+      </div>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <select
+          [ngModel]="sortKey"
+          (ngModelChange)="sortBy($event)"
+          class="input !min-h-[44px] !pl-4 sm:w-56"
+        >
+          <option value="scheduleId">Work Order</option>
+          <option value="machineId">Machine</option>
+          <option value="status">Status</option>
+          <option value="scheduleDate">Scheduled Date</option>
+        </select>
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="sortBy(sortKey)"
+        >
+          {{ sortDirection === 'asc' ? 'Asc' : 'Desc' }}
+        </button>
+      </div>
+    </div>
+    <article
+      *ngFor="let task of paginatedTasks"
+      class="enterprise-panel engineer-task-card"
+    >
+      <div class="engineer-card-head">
+        <div>
+          <p class="enterprise-card-label">Work Order</p>
+          <h2>WO-{{ task.scheduleId }}</h2>
+        </div>
+        <span class="engineer-status" [ngClass]="statusClass(task.status)">{{
+          task.status
+        }}</span>
+      </div>
+
+      <div class="engineer-task-meta">
+        <div>
+          <span>Machine</span>
+          <strong>{{ task.machineId }}</strong>
+        </div>
+        <div>
+          <span>Alert</span>
+          <strong>{{ task.alertId || "N/A" }}</strong>
+        </div>
+        <div>
+          <span>Scheduled</span>
+          <strong>{{ task.scheduleDate }}</strong>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2 text-xs font-bold">
+        <span
+          class="inventory-status"
+          [ngClass]="healthBadgeClass(task.machineHealthStatus)"
+        >
+          {{ task.machineHealthStatus || "HEALTHY" }}
+        </span>
+        <span
+          class="inventory-status"
+          [ngClass]="lifecycleBadgeClass(task.machineLifecycleStatus)"
+        >
+          {{ task.machineLifecycleStatus || "ACTIVE" }}
+        </span>
+        <span
+          class="inventory-status"
+          [ngClass]="warrantyBadgeClass(task.machineWarrantyStatus)"
+        >
+          {{ task.machineWarrantyStatus || "UNKNOWN" }}
+        </span>
+      </div>
+
+      <div class="engineer-actions">
+        <button
+          type="button"
+          class="task-action-btn action-start"
+          (click)="openTaskModal(task, 'start')"
+          [disabled]="task.status === 'Completed'"
+        >
+          <span>ST</span> Start Work
+        </button>
+        <button
+          type="button"
+          class="task-action-btn action-progress"
+          (click)="openTaskModal(task, 'progress')"
+          [disabled]="task.status === 'Completed'"
+        >
+          <span>UP</span> Update Progress
+        </button>
+        <button
+          type="button"
+          class="task-action-btn action-parts"
+          (click)="openTaskModal(task, 'parts')"
+          [disabled]="task.status === 'Completed'"
+        >
+          <span>PR</span> Request Parts
+        </button>
+        <button
+          type="button"
+          class="task-action-btn action-complete"
+          (click)="openTaskModal(task, 'complete')"
+          [disabled]="task.status === 'Completed'"
+        >
+          <span>OK</span> Complete Task
+        </button>
+      </div>
+    </article>
+    <div class="pagination-bar md:col-span-2 xl:col-span-3" *ngIf="visibleTasks.length > 0">
+      <span class="text-sm font-bold text-th-muted">
+        Showing {{ (page - 1) * rowsPerPage + 1 }}-{{
+          page * rowsPerPage > visibleTasks.length
+            ? visibleTasks.length
+            : page * rowsPerPage
+        }}
+        of {{ visibleTasks.length }} work orders
+      </span>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="page-btn"
+          (click)="changePage(page - 1)"
+          [disabled]="page === 1"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          class="page-btn"
+          *ngFor="let item of pages()"
+          [disabled]="item === '...'"
+          [ngClass]="
+            item === '...'
+              ? 'page-inactive'
+              : item === page
+                ? 'page-active'
+                : 'page-inactive'
+          "
+          (click)="changePageFromItem(item)"
+        >
+          {{ item }}
+        </button>
+        <button
+          type="button"
+          class="page-btn"
+          (click)="changePage(page + 1)"
+          [disabled]="page === totalPages"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    *ngIf="selectedTask"
+    class="engineer-modal-backdrop"
+    (click)="closeTaskModal()"
+  >
+    <section class="engineer-modal" (click)="$event.stopPropagation()">
+      <div class="engineer-card-head">
+        <div>
+          <p class="enterprise-page-eyebrow">
+            WO-{{ selectedTask.scheduleId }}
+          </p>
+          <h2 class="enterprise-panel-title">
+            {{
+              action === "parts"
+                ? "Request Parts"
+                : action === "complete"
+                  ? "Complete Maintenance"
+                  : action === "start"
+                    ? "Start Work"
+                    : "Update Progress"
+            }}
+          </h2>
+          <button
+            type="button"
+            class="back-btn mt-3"
+            (click)="closeTaskModal()"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Back to Tasks</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="enterprise-icon-button"
+          (click)="closeTaskModal()"
+        >
+          X
+        </button>
+      </div>
+
+      <div class="engineer-task-meta modal-meta">
+        <div>
+          <span>Machine</span>
+          <strong>{{ selectedTask.machineId }}</strong>
+        </div>
+        <div>
+          <span>Current Status</span>
+          <strong>{{ selectedTask.status }}</strong>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2 text-xs font-bold">
+        <span
+          class="inventory-status"
+          [ngClass]="healthBadgeClass(selectedTask.machineHealthStatus)"
+        >
+          {{ selectedTask.machineHealthStatus || "HEALTHY" }}
+        </span>
+        <span
+          class="inventory-status"
+          [ngClass]="lifecycleBadgeClass(selectedTask.machineLifecycleStatus)"
+        >
+          {{ selectedTask.machineLifecycleStatus || "ACTIVE" }}
+        </span>
+        <span
+          class="inventory-status"
+          [ngClass]="warrantyBadgeClass(selectedTask.machineWarrantyStatus)"
+        >
+          {{ selectedTask.machineWarrantyStatus || "UNKNOWN" }}
+        </span>
+      </div>
+
+      <div *ngIf="action !== 'parts'" class="modal-field">
+        <label>Repair Notes</label>
+        <textarea
+          [(ngModel)]="repairNotes"
+          rows="5"
+          class="input !min-h-[120px] !p-4"
+        ></textarea>
+      </div>
+
+      <div *ngIf="action === 'parts'" class="parts-grid">
+        <div *ngFor="let row of partRows; let i = index" class="part-row">
+          <select [(ngModel)]="row.partId" class="input !min-h-[44px] !pl-4">
+            <option [ngValue]="null">Select part</option>
+            <option *ngFor="let part of parts" [ngValue]="part.partId">
+              {{ part.partName }} ({{ part.currentStock }} available)
+            </option>
+          </select>
+          <input
+            type="number"
+            [(ngModel)]="row.quantity"
+            class="input !min-h-[44px] !pl-4"
+            placeholder="Quantity"
+            min="1"
+          />
+          <button
+            type="button"
+            class="enterprise-btn-secondary"
+            (click)="removePartRow(i)"
+          >
+            Remove
+          </button>
+        </div>
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="addPartRow()"
+        >
+          + Add Another Part
+        </button>
+      </div>
+
+      <div *ngIf="allocationResult" class="allocation-result">
+        <h3>Parts Allocation Result</h3>
+        <div
+          *ngIf="allocationResult.allocated.length"
+          class="allocation-block success"
+        >
+          <strong>Allocated Successfully</strong>
+          <p *ngFor="let item of allocationResult.allocated">
+            ✓ {{ item.partName }} ({{ item.quantity }})
+          </p>
+        </div>
+        <div
+          *ngIf="allocationResult.unavailable.length"
+          class="allocation-block danger"
+        >
+          <strong>Unavailable</strong>
+          <div *ngFor="let item of allocationResult.unavailable">
+            <p>✕ {{ item.partName }}</p>
+            <small
+              >{{ item.reason }} Available stock: {{ item.available }}</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="engineer-modal-actions">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="closeTaskModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="task-action-btn"
+          [ngClass]="
+            action === 'complete'
+              ? 'action-complete'
+              : action === 'parts'
+                ? 'action-parts'
+                : action === 'progress'
+                  ? 'action-progress'
+                  : 'action-start'
+          "
+          (click)="submitTaskAction()"
+          [disabled]="submitting"
+        >
+          <span *ngIf="submitting" class="mini-spinner"></span>
+          {{ submitting ? "Saving..." : "Confirm" }}
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    *ngIf="confirmVisible"
+    class="engineer-modal-backdrop"
+    (click)="cancelConfirm()"
+  >
+    <section class="enterprise-confirm-card" (click)="$event.stopPropagation()">
+      <p class="enterprise-page-eyebrow">Confirm maintenance action</p>
+      <h2>
+        {{
+          action === "complete"
+            ? "Complete this task?"
+            : "Submit parts request?"
+        }}
+      </h2>
+      <p>
+        {{
+          action === "complete"
+            ? "This work order will move to History Center and disappear from My Tasks."
+            : "Selected spare parts will be allocated where stock is available."
+        }}
+      </p>
+      <div class="engineer-modal-actions">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="cancelConfirm()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="task-action-btn"
+          [ngClass]="action === 'complete' ? 'action-complete' : 'action-parts'"
+          (click)="confirmTaskAction()"
+        >
+          Confirm
+        </button>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,57 @@
+<section class="min-h-screen bg-th-bg px-4 py-10 text-th-text">
+  <div class="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
+    <div class="enterprise-panel w-full max-w-2xl animate-fade-in-up">
+      <p class="enterprise-page-eyebrow">First login security</p>
+      <h1 class="enterprise-page-title gradient-text">Secure Your Account</h1>
+      <p class="enterprise-page-copy mb-8">
+        Update your password and configure recovery questions before entering MachCare.
+      </p>
+
+      <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="raise-form">
+        <label class="raise-form-full">
+          <span>New Password</span>
+          <input formControlName="newPassword" type="password" class="input !min-h-[44px] !pl-4" placeholder="Minimum 8 characters" />
+          <div class="mt-3 h-2 rounded-full bg-th-bg3">
+            <span class="block h-2 rounded-full bg-gradient-to-r from-blue-600 to-emerald-400 transition-all" [style.width.%]="passwordStrength"></span>
+          </div>
+          <div class="password-check-grid">
+            <span *ngFor="let check of passwordChecks" [class.valid]="check.valid">
+              {{ check.valid ? "OK" : "--" }} {{ check.label }}
+            </span>
+          </div>
+        </label>
+
+        <label>
+          <span>Security Question 1</span>
+          <select formControlName="q1" class="input !min-h-[44px] !pl-4">
+            <option>What is your mother's maiden name?</option>
+            <option>What was the name of your first pet?</option>
+          </select>
+        </label>
+        <label>
+          <span>Answer 1</span>
+          <input formControlName="a1" type="text" class="input !min-h-[44px] !pl-4" placeholder="Your answer" />
+        </label>
+
+        <label>
+          <span>Security Question 2</span>
+          <select formControlName="q2" class="input !min-h-[44px] !pl-4">
+            <option>What city were you born in?</option>
+            <option>What high school did you attend?</option>
+          </select>
+        </label>
+        <label>
+          <span>Answer 2</span>
+          <input formControlName="a2" type="text" class="input !min-h-[44px] !pl-4" placeholder="Your answer" />
+        </label>
+
+        <div class="engineer-modal-actions raise-form-full">
+          <button type="submit" class="enterprise-btn w-full" [disabled]="setupForm.invalid || isSubmitting">
+            <span *ngIf="isSubmitting" class="mini-spinner"></span>
+            {{ isSubmitting ? "Securing Account..." : "Save and Continue" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

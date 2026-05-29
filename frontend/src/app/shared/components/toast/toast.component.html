@@ -1,0 +1,32 @@
+<div class="toast-container" *ngIf="toasts.length > 0">
+  <div
+    *ngFor="let toast of toasts; trackBy: trackByFn"
+    class="toast-item"
+    [ngClass]="'toast-' + toast.type"
+  >
+    <div class="toast-icon">
+      {{ getIcon(toast.type) }}
+    </div>
+
+    <div class="toast-content">
+      <p class="toast-title">{{ toast.title }}</p>
+      <p class="toast-message">{{ toast.message }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="toast-close"
+      (click)="dismiss(toast.id)"
+      aria-label="Dismiss notification"
+    >
+      Close
+    </button>
+
+    <div class="toast-progress">
+      <div
+        class="toast-progress-bar"
+        [style.animation-duration]="toast.duration + 'ms'"
+      ></div>
+    </div>
+  </div>
+</div>

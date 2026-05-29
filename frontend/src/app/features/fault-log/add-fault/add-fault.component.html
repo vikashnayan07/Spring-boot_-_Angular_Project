@@ -1,0 +1,537 @@
+<div class="fault-page min-h-screen bg-th-bg text-th-text">
+  <!-- Background Effects -->
+  <div class="orb orb-purple"></div>
+  <div class="orb orb-cyan"></div>
+  <div class="orb orb-indigo"></div>
+  <div class="dot-grid"></div>
+
+  <div class="fault-shell">
+    <!-- Header Card -->
+    <div class="header-card glass-card" [@fadeUp]>
+      <div class="header-left">
+        <div class="icon-box">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <div class="breadcrumb font-body">
+            <a routerLink="/operator/dashboard" class="breadcrumb-link">Dashboard</a>
+            <span class="breadcrumb-sep">/</span>
+            <a routerLink="/operator/machines" class="breadcrumb-link">Faults</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Add New</span>
+          </div>
+
+          <h1 class="font-heading gradient-text">Fault Information</h1>
+
+          <p class="header-subtitle text-th-muted font-body">
+            Enter industrial machine fault details
+          </p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a routerLink="/operator/dashboard" class="back-btn">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </a>
+
+        <span class="id-badge font-data">
+          {{ faultForm.get("faultId")?.value || "FLT-XXXX" }}
+        </span>
+      </div>
+
+      <div class="header-divider"></div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card glass-card" *ngIf="!success" [@fadeUp]>
+      <form
+        [formGroup]="faultForm"
+        (ngSubmit)="submitFault()"
+        [class.form-loading]="loading"
+      >
+        <!-- Identification Section -->
+        <div class="section-label font-heading">
+          <span class="section-line"></span>
+          <span class="gradient-text">Identification</span>
+          <span class="section-line"></span>
+        </div>
+
+        <div class="grid-two">
+          <!-- Fault ID -->
+          <div class="field">
+            <label class="field-label font-heading text-th-text2"
+              >Fault ID</label
+            >
+
+            <div class="input-wrap" [class.has-error]="isInvalid('faultId')">
+              <span class="input-icon lock">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+
+              <input
+                type="text"
+                formControlName="faultId"
+                readonly
+                class="input read-only bg-th-input border-th-border font-data"
+                placeholder="FLT-XXXX"
+              />
+
+              <span class="input-badge">Auto Generated</span>
+            </div>
+          </div>
+
+          <!-- Detected At -->
+          <div class="field">
+            <label class="field-label font-heading text-th-text2"
+              >Detected At</label
+            >
+
+            <div class="input-wrap" [class.has-error]="isInvalid('loggedTime')">
+              <span class="input-icon">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </span>
+
+              <input
+                type="text"
+                formControlName="loggedTime"
+                readonly
+                class="input read-only bg-th-input border-th-border font-data"
+                placeholder="Loading timestamp..."
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Fault Details Section -->
+        <div class="section-label font-heading">
+          <span class="section-line"></span>
+          <span class="gradient-text">Fault Details</span>
+          <span class="section-line"></span>
+        </div>
+
+        <!-- Machine Dropdown -->
+        <div class="field">
+          <label class="field-label font-heading text-th-text2">Machine</label>
+
+          <div
+            class="dropdown dropdown-machine"
+            [class.has-error]="isInvalid('machine')"
+          >
+            <button
+              type="button"
+              class="dropdown-trigger bg-th-input border-th-border"
+              (click)="toggleMachineDropdown($event)"
+            >
+              <span class="input-icon">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+              </span>
+
+              <span class="dropdown-text font-body">
+                {{ selectedMachineLabel }}
+              </span>
+
+              <span class="dropdown-arrow" [class.open]="machineDropdownOpen">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </button>
+
+            <div class="dropdown-panel glass-card" *ngIf="machineDropdownOpen">
+              <div
+                class="dropdown-option"
+                *ngFor="let machine of machines"
+                [class.selected]="faultForm.value.machine === machine.machineId"
+                (click)="selectMachine(machine)"
+              >
+                <span class="font-body">{{ machine.machineName }}</span>
+
+                <span
+                  class="option-check"
+                  *ngIf="faultForm.value.machine === machine.machineId"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p *ngIf="isInvalid('machine')" class="error-msg animate-fadeIn">
+            <span class="error-dot"></span>
+            Please select a machine.
+          </p>
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="field">
+          <label class="field-label font-heading text-th-text2"
+            >Fault Type</label
+          >
+
+          <div
+            class="dropdown dropdown-faulttype"
+            [class.has-error]="isInvalid('faultType')"
+          >
+            <button
+              type="button"
+              class="dropdown-trigger bg-th-input border-th-border"
+              (click)="toggleFaultTypeDropdown($event)"
+            >
+              <span class="input-icon">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                  />
+                </svg>
+              </span>
+
+              <span class="dropdown-text font-body">
+                {{ selectedFaultTypeLabel }}
+              </span>
+
+              <span class="dropdown-arrow" [class.open]="faultTypeDropdownOpen">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </button>
+
+            <div
+              class="dropdown-panel glass-card"
+              *ngIf="faultTypeDropdownOpen"
+            >
+              <div
+                class="dropdown-option"
+                *ngFor="let type of faultTypes"
+                [class.selected]="faultForm.value.faultType === type"
+                (click)="selectFaultType(type)"
+              >
+                <span class="font-body">{{ type }}</span>
+
+                <span
+                  class="option-check"
+                  *ngIf="faultForm.value.faultType === type"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p *ngIf="isInvalid('faultType')" class="error-msg animate-fadeIn">
+            <span class="error-dot"></span>
+            Please select a category.
+          </p>
+        </div>
+
+        <!-- Severity -->
+        <div class="field">
+          <label class="field-label font-heading text-th-text2"
+            >Severity Level</label
+          >
+
+          <div class="severity-group">
+            <button
+              type="button"
+              class="severity-pill low"
+              [class.active]="faultForm.value.severity === 'Low'"
+              (click)="setSeverity('Low')"
+            >
+              <span class="pill-dot"></span>
+              LOW
+            </button>
+
+            <button
+              type="button"
+              class="severity-pill medium"
+              [class.active]="faultForm.value.severity === 'Medium'"
+              (click)="setSeverity('Medium')"
+            >
+              <span class="pill-dot"></span>
+              MEDIUM
+            </button>
+
+            <button
+              type="button"
+              class="severity-pill high"
+              [class.active]="faultForm.value.severity === 'High'"
+              (click)="setSeverity('High')"
+            >
+              <span class="pill-dot"></span>
+              HIGH
+            </button>
+
+            <button
+              type="button"
+              class="severity-pill critical"
+              [class.active]="faultForm.value.severity === 'Critical'"
+              (click)="setSeverity('Critical')"
+            >
+              <span class="pill-dot"></span>
+              CRITICAL
+            </button>
+          </div>
+
+          <p *ngIf="isInvalid('severity')" class="error-msg animate-fadeIn">
+            <span class="error-dot"></span>
+            Please select a severity.
+          </p>
+        </div>
+
+        <!-- Other Fault Description -->
+        <div *ngIf="showOtherFault" class="field">
+          <label class="field-label font-heading text-th-text2"
+            >Description</label
+          >
+
+          <div class="input-wrap" [class.has-error]="isInvalid('otherFault')">
+            <textarea
+              formControlName="otherFault"
+              rows="4"
+              class="textarea bg-th-input border-th-border font-body"
+              placeholder="Describe the fault in detail..."
+            ></textarea>
+
+            <span
+              class="char-count font-data"
+              [class.warning]="otherFaultLength > 400"
+              [class.danger]="otherFaultLength > 480"
+            >
+              {{ otherFaultLength }} / {{ maxDescriptionLength }}
+            </span>
+          </div>
+
+          <p *ngIf="isInvalid('otherFault')" class="error-msg animate-fadeIn">
+            <span class="error-dot"></span>
+            Please describe the fault (min 10 characters).
+          </p>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <a routerLink="/operator/dashboard" class="btn-link font-body">Cancel</a>
+
+          <button type="button" class="btn-ghost font-body">Save Draft</button>
+
+          <button
+            type="submit"
+            class="btn-primary font-heading"
+            [disabled]="loading"
+          >
+            <span>Submit Fault</span>
+
+            <span *ngIf="loading" class="spinner"></span>
+
+            <span *ngIf="!loading" class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Success Card -->
+    <div class="success-card success-card-modern" *ngIf="success" [@successFade]>
+      <div class="success-orbit" aria-hidden="true"></div>
+
+      <div class="success-checkmark" aria-hidden="true">
+        <svg viewBox="0 0 96 96">
+          <circle class="success-check-circle" cx="48" cy="48" r="38"></circle>
+          <path class="success-check-path" d="M30 49.5l12.5 12.5L67 35"></path>
+        </svg>
+      </div>
+
+      <div class="success-copy">
+        <p class="success-eyebrow font-body">Fault audit trail updated</p>
+        <h2 class="font-heading">Fault Logged Successfully</h2>
+        <p class="text-th-muted font-body">
+          The machine fault has been securely recorded and is now visible in
+          operator fault logs.
+        </p>
+      </div>
+
+      <div class="success-summary">
+        <div class="success-summary-item">
+          <span>Fault ID</span>
+          <strong class="font-data">{{ successFaultId }}</strong>
+        </div>
+        <div class="success-summary-item">
+          <span>Machine ID</span>
+          <strong class="font-data">{{ successMachineId }}</strong>
+        </div>
+        <div class="success-summary-item">
+          <span>Timestamp</span>
+          <strong class="font-data">{{ successTimestamp }}</strong>
+        </div>
+        <div class="success-summary-item">
+          <span>Logged By</span>
+          <strong>{{ successLoggedBy }}</strong>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a routerLink="/operator/machines" class="btn-primary font-heading">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span>View Fault Logs</span>
+        </a>
+
+        <button
+          type="button"
+          class="btn-ghost font-body"
+          (click)="startNewFault()"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+          <span>Log Another Fault</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

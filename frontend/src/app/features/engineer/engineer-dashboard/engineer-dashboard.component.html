@@ -1,0 +1,243 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Maintenance execution</p>
+      <h1 class="enterprise-page-title">
+        Welcome, <span class="gradient-text">{{ engineerName }}</span>
+      </h1>
+      <p class="enterprise-page-copy">
+        Track assigned work orders, inventory requests, completion progress and
+        alert workload.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="enterprise-btn-secondary"
+      (click)="loadDashboard()"
+      [disabled]="isLoading"
+    >
+      <span [ngClass]="{ 'animate-spin': isLoading }">SYNC</span>
+      <span>{{ isLoading ? "Syncing" : "Refresh" }}</span>
+    </button>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Active Tasks</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.activeTasks }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">AT</span>
+      </div>
+      <p class="enterprise-kpi-meta">Open work orders requiring action</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">In Progress</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.inProgressTasks }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">IP</span>
+      </div>
+      <p class="enterprise-kpi-meta">Maintenance currently being executed</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Completed</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.completedTasks }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">DN</span>
+      </div>
+      <p class="enterprise-kpi-meta">Closed work orders assigned to you</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Overdue</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.overdueTasks }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">OD</span>
+      </div>
+      <p class="enterprise-kpi-meta">Scheduled before today and still open</p>
+    </article>
+  </div>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Machine Warranty Expiring</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.machineWarrantyExpiring }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WX</span>
+      </div>
+      <p class="enterprise-kpi-meta">
+        Assigned assets within 30 days of expiry
+      </p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Machine Warranty Expired</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.machineWarrantyExpired }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WE</span>
+      </div>
+      <p class="enterprise-kpi-meta">Assigned assets out of warranty</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Parts Expiring Soon</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.partsExpiringSoon }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">PS</span>
+      </div>
+      <p class="enterprise-kpi-meta">Spare parts nearing end of life</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Parts Expired</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.partsExpired }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">PX</span>
+      </div>
+      <p class="enterprise-kpi-meta">Expired parts linked to your machines</p>
+    </article>
+  </div>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Replacement Required</p>
+          <div class="enterprise-kpi-value">
+            {{ isLoading ? "--" : stats.replacementRequired }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">RR</span>
+      </div>
+      <p class="enterprise-kpi-meta">
+        Parts at end-of-life for assigned assets
+      </p>
+    </article>
+  </div>
+
+  <div class="enterprise-grid-2">
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">Maintenance actions</h2>
+      <div class="enterprise-action-grid">
+        <a routerLink="/engineer/tasks" class="enterprise-action-card">
+          <span class="enterprise-action-icon">WO</span>
+          <span
+            ><span class="enterprise-action-title">My Tasks</span
+            ><span class="enterprise-action-copy"
+              >Start work, update progress and complete repairs</span
+            ></span
+          >
+        </a>
+        <a routerLink="/engineer/raise-request" class="enterprise-action-card">
+          <span class="enterprise-action-icon">RR</span>
+          <span
+            ><span class="enterprise-action-title">Raise Request</span
+            ><span class="enterprise-action-copy"
+              >Raise secondary faults or request support for started work</span
+            ></span
+          >
+        </a>
+        <a routerLink="/engineer/alerts" class="enterprise-action-card">
+          <span class="enterprise-action-icon">AL</span>
+          <span
+            ><span class="enterprise-action-title">Alerts</span
+            ><span class="enterprise-action-copy"
+              >Review risk-generated machine alerts</span
+            ></span
+          >
+        </a>
+        <a routerLink="/engineer/history" class="enterprise-action-card">
+          <span class="enterprise-action-icon">HI</span>
+          <span
+            ><span class="enterprise-action-title">History</span
+            ><span class="enterprise-action-copy"
+              >Audit completed maintenance records</span
+            ></span
+          >
+        </a>
+      </div>
+    </section>
+
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">Workload Visualization</h2>
+      <div class="space-y-6">
+        <div>
+          <div class="mb-2 flex justify-between text-sm font-bold">
+            <span class="text-th-text2">Completion Rate</span>
+            <span class="text-cyan-400">{{ completionRate }}%</span>
+          </div>
+          <div class="enterprise-progress">
+            <span [style.width.%]="completionRate"></span>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div
+            *ngFor="let task of recentActivity"
+            class="rounded-2xl border border-th-border bg-th-card p-4"
+          >
+            <p class="font-black text-th-text">
+              WO-{{ task.scheduleId }} · {{ task.machineId }}
+            </p>
+            <p class="text-sm font-semibold text-th-muted">
+              {{ task.status }} · {{ task.scheduleDate }}
+            </p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+              <span
+                class="inventory-status"
+                [ngClass]="healthBadgeClass(task.machineHealthStatus)"
+              >
+                {{ task.machineHealthStatus || "HEALTHY" }}
+              </span>
+              <span
+                class="inventory-status"
+                [ngClass]="lifecycleBadgeClass(task.machineLifecycleStatus)"
+              >
+                {{ task.machineLifecycleStatus || "ACTIVE" }}
+              </span>
+              <span
+                class="inventory-status"
+                [ngClass]="warrantyBadgeClass(task.machineWarrantyStatus)"
+              >
+                {{ task.machineWarrantyStatus || "UNKNOWN" }}
+              </span>
+            </div>
+          </div>
+          <p
+            *ngIf="!recentActivity.length && !isLoading"
+            class="text-sm font-semibold text-th-muted"
+          >
+            No recent task activity.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,389 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Engineer escalation workspace</p>
+      <h1 class="enterprise-page-title gradient-text">Raise Request</h1>
+      <p class="enterprise-page-copy">
+        Raise secondary faults or request additional support from active
+        maintenance tasks.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="enterprise-btn-secondary"
+      (click)="loadTasks()"
+      [disabled]="loading"
+    >
+      <span [ngClass]="{ 'animate-spin': loading }">SYNC</span>
+      <span>{{ loading ? "Loading" : "Refresh" }}</span>
+    </button>
+  </header>
+
+  <div *ngIf="loading" class="skeleton-wrapper">
+    <div class="skeleton-row" *ngFor="let row of [1, 2, 3]">
+      <span class="skeleton-cell" *ngFor="let cell of [1, 2, 3, 4]"></span>
+    </div>
+  </div>
+
+  <div
+    *ngIf="!loading && startedTasks.length === 0"
+    class="enterprise-panel raise-empty"
+  >
+    <span class="enterprise-kpi-icon">RR</span>
+    <h2 class="enterprise-panel-title">No started maintenance tasks</h2>
+    <p class="enterprise-page-copy">
+      Click Start Work in My Tasks. Started work orders will appear here for
+      escalation.
+    </p>
+  </div>
+
+  <div
+    *ngIf="!loading && startedTasks.length > 0"
+    class="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3"
+  >
+    <article
+      *ngFor="let task of startedTasks"
+      class="enterprise-panel flex min-w-0 flex-col gap-4 rounded-[1.5rem] border border-th-border bg-th-card p-5 shadow-[0_18px_60px_rgba(0,0,0,0.16)]"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="enterprise-card-label">Active Work Order</p>
+          <h2
+            class="mt-1 break-words text-2xl font-black text-th-text sm:text-3xl"
+          >
+            WO-{{ task.scheduleId }}
+          </h2>
+        </div>
+        <span
+          class="shrink-0 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-200"
+        >
+          In Progress
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+          <span
+            class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+            >Machine</span
+          >
+          <strong class="mt-1 block break-all font-data text-th-text">{{
+            task.machineId
+          }}</strong>
+        </div>
+        <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+          <span
+            class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+            >Alert</span
+          >
+          <strong class="mt-1 block break-all font-data text-th-text">{{
+            task.alertId || "N/A"
+          }}</strong>
+        </div>
+        <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+          <span
+            class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+            >Scheduled</span
+          >
+          <strong class="mt-1 block break-all font-data text-th-text">{{
+            task.scheduleDate
+          }}</strong>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          class="flex min-h-[96px] items-start gap-3 rounded-2xl border border-orange-400/20 bg-orange-400/10 p-4 text-left transition hover:-translate-y-0.5 hover:border-orange-300/40 hover:bg-orange-400/15"
+          (click)="openModal(task, 'fault')"
+        >
+          <span
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-sm font-black text-orange-200"
+            >RF</span
+          >
+          <span class="min-w-0">
+            <strong class="block text-base font-black text-th-text"
+              >Raise Fault</strong
+            >
+            <small class="mt-1 block text-xs font-semibold text-th-muted"
+              >Secondary issue</small
+            >
+          </span>
+        </button>
+        <button
+          type="button"
+          class="flex min-h-[96px] items-start gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-left transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-400/15"
+          (click)="openModal(task, 'support')"
+        >
+          <span
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-sm font-black text-cyan-200"
+            >SP</span
+          >
+          <span class="min-w-0">
+            <strong class="block text-base font-black text-th-text"
+              >Support Request</strong
+            >
+            <small class="mt-1 block text-xs font-semibold text-th-muted"
+              >Extra engineer help</small
+            >
+          </span>
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div
+    *ngIf="selectedTask"
+    class="engineer-modal-backdrop"
+    (click)="closeModal()"
+  >
+    <section
+      class="engineer-modal mx-4 w-full max-w-4xl rounded-[1.5rem] border border-cyan-300/20 bg-slate-950/95 p-5 shadow-2xl backdrop-blur-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <div
+        class="mb-4 rounded-[1.25rem] border p-4"
+        [ngClass]="
+          mode === 'fault'
+            ? 'border-orange-400/25 bg-orange-400/10'
+            : 'border-cyan-400/25 bg-cyan-400/10'
+        "
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="enterprise-page-eyebrow">
+              WO-{{ selectedTask.scheduleId }}
+            </p>
+            <h2 class="enterprise-panel-title">
+              {{
+                mode === "fault" ? "Raise Fault" : "Request Additional Support"
+              }}
+            </h2>
+            <p class="enterprise-page-copy">
+              {{
+                mode === "fault"
+                  ? "Create a secondary machine fault from this active maintenance context."
+                  : "Escalate manpower support for this active work order."
+              }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="enterprise-icon-button shrink-0"
+            (click)="closeModal()"
+          >
+            X
+          </button>
+        </div>
+      </div>
+
+      <div
+        *ngIf="contextLoading"
+        class="mt-4 rounded-2xl border border-dashed border-th-border px-4 py-5 text-center text-sm font-semibold text-th-muted"
+      >
+        Loading work order context...
+      </div>
+
+      <ng-container *ngIf="!contextLoading && context">
+        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+            <span
+              class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+              >Machine</span
+            >
+            <strong class="mt-1 block break-words font-data text-th-text"
+              >{{ context.machineId }} - {{ context.machineName }}</strong
+            >
+          </div>
+          <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+            <span
+              class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+              >Alert</span
+            >
+            <strong class="mt-1 block break-all font-data text-th-text">{{
+              context.alertId || "N/A"
+            }}</strong>
+          </div>
+          <div class="rounded-2xl border border-th-border bg-th-bg2 p-3">
+            <span
+              class="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-th-muted"
+              >{{ mode === "fault" ? "Next Fault" : "Requested At" }}</span
+            >
+            <strong class="mt-1 block break-all font-data text-th-text">{{
+              mode === "fault" ? context.nextFaultId : context.currentTime
+            }}</strong>
+          </div>
+        </div>
+
+        <div
+          *ngIf="mode === 'fault'"
+          class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          <label>
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Fault Type</span
+            >
+            <select
+              [(ngModel)]="faultForm.faultType"
+              class="input !min-h-[44px] !w-full !pl-4"
+            >
+              <option *ngFor="let type of context.faultTypes" [ngValue]="type">
+                {{ type }}
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Severity</span
+            >
+            <select
+              [(ngModel)]="faultForm.severity"
+              class="input !min-h-[44px] !w-full !pl-4"
+            >
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </label>
+
+          <label *ngIf="faultForm.faultType === 'Other'" class="md:col-span-2">
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Fault Remark</span
+            >
+            <textarea
+              [(ngModel)]="faultForm.remark"
+              rows="4"
+              class="input !min-h-[110px] !w-full !p-4"
+            ></textarea>
+          </label>
+        </div>
+
+        <div
+          *ngIf="mode === 'support'"
+          class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          <label class="md:col-span-2">
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Reason</span
+            >
+            <textarea
+              [(ngModel)]="supportForm.reason"
+              rows="4"
+              class="input !min-h-[110px] !w-full !p-4"
+            ></textarea>
+          </label>
+
+          <label>
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Required Engineer Count</span
+            >
+            <input
+              type="number"
+              min="1"
+              max="3"
+              [(ngModel)]="supportForm.requiredEngineerCount"
+              class="input !min-h-[44px] !w-full !pl-4"
+            />
+          </label>
+
+          <label>
+            <span
+              class="mb-2 block text-xs font-extrabold uppercase tracking-[0.16em] text-th-muted"
+              >Urgency</span
+            >
+            <select
+              [(ngModel)]="supportForm.urgency"
+              class="input !min-h-[44px] !w-full !pl-4"
+            >
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </label>
+        </div>
+      </ng-container>
+
+      <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="enterprise-btn"
+          [ngClass]="
+            mode === 'fault'
+              ? 'bg-orange-500/90 hover:bg-orange-500'
+              : 'bg-cyan-500/90 hover:bg-cyan-500'
+          "
+          (click)="submit()"
+          [disabled]="submitting || contextLoading"
+        >
+          <span *ngIf="submitting" class="mini-spinner"></span>
+          {{
+            submitting
+              ? "Submitting..."
+              : mode === "fault"
+                ? "Raise Fault"
+                : "Create Support Escalation"
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div
+    *ngIf="confirmVisible"
+    class="engineer-modal-backdrop"
+    (click)="cancelConfirm()"
+  >
+    <section class="enterprise-confirm-card" (click)="$event.stopPropagation()">
+      <p class="enterprise-page-eyebrow">Confirm escalation</p>
+      <h2>
+        {{
+          mode === "fault" ? "Raise this fault?" : "Request additional support?"
+        }}
+      </h2>
+      <p>
+        {{
+          mode === "fault"
+            ? "This will create a new fault log and send it to the analysis queue."
+            : "This will create support escalation alerts for admin auto assignment."
+        }}
+      </p>
+      <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="cancelConfirm()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="enterprise-btn"
+          [ngClass]="
+            mode === 'fault'
+              ? 'bg-orange-500/90 hover:bg-orange-500'
+              : 'bg-cyan-500/90 hover:bg-cyan-500'
+          "
+          (click)="confirmSubmit()"
+        >
+          Confirm
+        </button>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,214 @@
+<div class="min-h-screen bg-th-bg text-th-text">
+  <!-- Page Container -->
+  <div class="max-w-[1600px] mx-auto px-6 py-8">
+    <!-- Header -->
+    <div
+      class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10"
+    >
+      <!-- Left -->
+      <div>
+        <h1 class="text-3xl lg:text-4xl font-bold tracking-tight font-heading">
+          Fault Monitoring <span class="gradient-text">Dashboard</span>
+        </h1>
+        <p class="text-th-muted mt-2 text-base font-body">
+          Real-time industrial machine fault analytics and monitoring system
+        </p>
+      </div>
+
+      <!-- Right -->
+      <div class="flex items-center gap-3">
+        <!-- Live Status -->
+        <div
+          class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-th-border bg-th-bg2 font-body"
+        >
+          <div
+            class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"
+          ></div>
+          <span class="text-sm text-th-text2">Live Monitoring</span>
+        </div>
+
+        <!-- Add Fault Button -->
+        <a
+          [routerLink]="localStorageRoleId === 1 ? '/admin/import-fault-logs' : '/operator/log-error'"
+          class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 transition-all duration-300 hover:scale-[1.02] font-medium text-sm shadow-lg shadow-violet-500/20 flex items-center justify-center text-white font-body gap-1.5"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ localStorageRoleId === 1 ? 'Import Fault Logs' : 'Add Fault' }}
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
+      <ng-container *ngIf="!isLoading; else kpiSkeleton">
+        <app-kpi-card
+          title="Total Faults"
+          [value]="kpis.totalFaults"
+          icon="📈"
+          trend="Live"
+          [trendUp]="true"
+          color="cyan"
+        >
+        </app-kpi-card>
+
+        <app-kpi-card
+          title="High Alerts"
+          [value]="kpis.highAlerts"
+          icon="⚡"
+          trend="Live"
+          [trendUp]="true"
+          color="violet"
+        >
+        </app-kpi-card>
+
+        <app-kpi-card
+          title="Today's Faults"
+          [value]="kpis.todaysFaults"
+          icon="✓"
+          trend="Today"
+          [trendUp]="true"
+          color="emerald"
+        >
+        </app-kpi-card>
+
+        <app-kpi-card
+          title="Critical Alerts"
+          [value]="kpis.criticalAlerts"
+          icon="🔴"
+          trend="High"
+          [trendUp]="false"
+          color="blue"
+        >
+        </app-kpi-card>
+      </ng-container>
+      <ng-template #kpiSkeleton>
+        <div
+          class="glass-card rounded-2xl border border-th-border bg-th-card p-5 animate-pulse"
+          *ngFor="let i of [1, 2, 3, 4]"
+        >
+          <div class="h-4 w-24 bg-th-bg3 rounded-lg"></div>
+          <div class="h-8 w-20 bg-th-bg3 rounded-lg mt-3"></div>
+          <div class="h-4 w-16 bg-th-bg3 rounded-lg mt-4"></div>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="mb-10">
+      <div class="glass-card rounded-2xl border border-th-border p-6">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-xl font-semibold font-heading text-th-text">
+              Advanced Filters
+            </h2>
+            <p class="text-th-muted mt-1 text-sm font-body">
+              Filter machine faults using severity and machine analytics
+            </p>
+          </div>
+        </div>
+        <app-filter-panel
+          (filtersChanged)="onFiltersChanged($event)"
+          (filtersReset)="onFiltersReset()"
+        >
+        </app-filter-panel>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="mb-10">
+      <app-charts [data]="filteredFaults" [isLoading]="isLoading"></app-charts>
+    </div>
+
+    <!-- Table Section -->
+    <div class="glass-card rounded-2xl border border-th-border overflow-hidden">
+      <!-- Table Header -->
+      <div
+        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-6 border-b border-th-border"
+      >
+        <!-- Left -->
+        <div>
+          <h2 class="text-xl font-semibold font-heading text-th-text">
+            Fault Logs
+          </h2>
+          <p class="text-th-muted mt-1 text-sm font-body">
+            Real-time fault records fetched from backend API
+          </p>
+        </div>
+
+        <!-- Right -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <!-- Search -->
+          <div class="relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 text-th-muted absolute left-3 top-1/2 -translate-y-1/2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search faults..."
+              class="w-[220px] bg-th-bg3 border border-th-border rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-violet-500 transition text-sm text-th-text font-body placeholder:text-th-muted"
+              [value]="searchQuery"
+              (input)="onSearchChange($event)"
+            />
+          </div>
+
+          <!-- Export -->
+          <button
+            (click)="exportCSV()"
+            class="px-4 py-2.5 rounded-xl border border-th-border bg-th-bg3 hover:bg-th-bg2 transition text-sm font-medium text-th-text2 font-body flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Body -->
+      <div class="p-6">
+        <app-filter-table
+          [data]="filteredFaults"
+          [searchQuery]="searchQuery"
+          [isLoading]="isLoading"
+        >
+        </app-filter-table>
+      </div>
+    </div>
+  </div>
+</div>
+

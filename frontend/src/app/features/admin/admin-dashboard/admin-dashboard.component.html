@@ -1,0 +1,225 @@
+<section class="enterprise-page">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Factory intelligence</p>
+      <h1 class="enterprise-page-title">
+        Welcome back, <span class="gradient-text">{{ adminName }}</span>
+      </h1>
+      <p class="enterprise-page-copy">
+        Live workforce, machine, maintenance, and fault health across the plant.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="loadRealTimeData()"
+      [disabled]="isLoading"
+      class="enterprise-btn-secondary"
+    >
+      <span [ngClass]="{ 'animate-spin': isLoading }">SYNC</span>
+      <span>{{ isLoading ? "Syncing" : "Refresh data" }}</span>
+    </button>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Workforce</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.totalEmployees }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WF</span>
+      </div>
+      <p class="enterprise-kpi-meta">Registered employee accounts</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Operational</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.operationalMachines }}</span>
+            <span *ngIf="!isLoading" class="text-base text-th-muted"
+              >/ {{ stats.totalMachines }}</span
+            >
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">OK</span>
+      </div>
+      <p class="enterprise-kpi-meta">Machines reporting healthy state</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Maintenance</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.maintenanceMachines }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">MT</span>
+      </div>
+      <p class="enterprise-kpi-meta">Assets currently under service</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Critical faults</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.faultyMachines }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">AL</span>
+      </div>
+      <p class="enterprise-kpi-meta">Items requiring action</p>
+    </article>
+  </div>
+
+  <div class="enterprise-grid-2">
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">Quick actions</h2>
+      <div class="enterprise-action-grid">
+        <a routerLink="/admin/employees" class="enterprise-action-card">
+          <span class="enterprise-action-icon">PE</span>
+          <span>
+            <span class="enterprise-action-title">Manage personnel</span>
+            <span class="enterprise-action-copy"
+              >Add, suspend, and review users</span
+            >
+          </span>
+        </a>
+
+        <a routerLink="/admin/machines" class="enterprise-action-card">
+          <span class="enterprise-action-icon">MR</span>
+          <span>
+            <span class="enterprise-action-title">Machine registry</span>
+            <span class="enterprise-action-copy"
+              >Register and audit equipment</span
+            >
+          </span>
+        </a>
+
+        <a routerLink="/admin/fault-analysis" class="enterprise-action-card">
+          <span class="enterprise-action-icon">FA</span>
+          <span>
+            <span class="enterprise-action-title">Fault analysis</span>
+            <span class="enterprise-action-copy"
+              >Review health and risk trends</span
+            >
+          </span>
+        </a>
+
+        <a routerLink="/admin/activity-center" class="enterprise-action-card">
+          <span class="enterprise-action-icon">AC</span>
+          <span>
+            <span class="enterprise-action-title">Activity center</span>
+            <span class="enterprise-action-copy"
+              >Monitor enterprise-wide audit events</span
+            >
+          </span>
+        </a>
+
+        <a routerLink="/admin/inventory" class="enterprise-action-card">
+          <span class="enterprise-action-icon">IN</span>
+          <span>
+            <span class="enterprise-action-title">Inventory</span>
+            <span class="enterprise-action-copy"
+              >Track parts and usage history</span
+            >
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">System health</h2>
+      <div class="space-y-6">
+        <div>
+          <div class="flex justify-between text-sm font-bold mb-2">
+            <span class="text-th-text2">Backend API services</span>
+            <span class="text-emerald-400">Online</span>
+          </div>
+          <div class="enterprise-progress">
+            <span style="width: 100%"></span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-sm font-bold mb-2">
+            <span class="text-th-text2">Machine uptime</span>
+            <span class="text-cyan-400">
+              {{
+                stats.totalMachines === 0
+                  ? 0
+                  : (
+                      (stats.operationalMachines / stats.totalMachines) *
+                      100
+                    ).toFixed(0)
+              }}%
+            </span>
+          </div>
+          <div class="enterprise-progress">
+            <span
+              [style.width.%]="
+                stats.totalMachines === 0
+                  ? 0
+                  : (stats.operationalMachines / stats.totalMachines) * 100
+              "
+            ></span>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-th-border bg-th-card p-4">
+          <p class="enterprise-card-label">Lifecycle alerts</p>
+          <div class="mt-3 grid gap-2 text-sm">
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'serviceOverdue'" (click)="openLifecycleDrilldown('serviceOverdue')">
+              <span class="text-th-text2">Service overdue</span>
+              <span class="text-red-300">{{
+                stats.machinesServiceOverdue
+              }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'warrantyExpired'" (click)="openLifecycleDrilldown('warrantyExpired')">
+              <span class="text-th-text2">Machine out of warranty</span>
+              <span class="text-orange-300">{{
+                stats.machinesOutOfWarranty
+              }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'maintenanceDue'" (click)="openLifecycleDrilldown('maintenanceDue')">
+              <span class="text-th-text2">Maintenance due</span>
+              <span class="text-amber-300">{{
+                stats.machinesMaintenanceDue
+              }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'machineAtRisk'" (click)="openLifecycleDrilldown('machineAtRisk')">
+              <span class="text-th-text2">Machine at risk</span>
+              <span class="text-rose-300">{{ stats.machinesAtRisk }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'partsExpiringSoon'" (click)="openLifecycleDrilldown('partsExpiringSoon')">
+              <span class="text-th-text2">Parts expiring soon</span>
+              <span class="text-yellow-200">{{ stats.partsExpiringSoon }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'partsExpired'" (click)="openLifecycleDrilldown('partsExpired')">
+              <span class="text-th-text2">Parts expired</span>
+              <span class="text-red-300">{{ stats.partsExpired }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'partsOutOfStock'" (click)="openLifecycleDrilldown('partsOutOfStock')">
+              <span class="text-th-text2">Parts out of stock</span>
+              <span class="text-red-300">{{ stats.partsOutOfStock }}</span>
+            </button>
+            <button type="button" class="lifecycle-drill-row" [class.active]="activeLifecycleDrilldown === 'partsReorder'" (click)="openLifecycleDrilldown('partsReorder')">
+              <span class="text-th-text2">Parts reorder</span>
+              <span class="text-amber-300">{{ stats.partsReorder }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>

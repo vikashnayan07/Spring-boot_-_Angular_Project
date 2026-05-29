@@ -1,0 +1,370 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Workforce administration</p>
+      <h1 class="enterprise-page-title gradient-text">
+        Employee Command Center
+      </h1>
+      <p class="enterprise-page-copy">
+        Manage role-based workforce access with consistent validation and
+        account controls.
+      </p>
+    </div>
+    <button type="button" class="enterprise-btn" (click)="openEmployeeModal()">
+      <span>+</span>
+      <span>Add Employee</span>
+    </button>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Total Employees</p>
+          <div class="enterprise-kpi-value">{{ employees.length }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">TE</span>
+      </div>
+      <p class="enterprise-kpi-meta">Registered workforce accounts</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Active Accounts</p>
+          <div class="enterprise-kpi-value">{{ activeEmployees }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">AC</span>
+      </div>
+      <p class="enterprise-kpi-meta">Accounts available for assignment</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Engineers</p>
+          <div class="enterprise-kpi-value">{{ engineerCount }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">EN</span>
+      </div>
+      <p class="enterprise-kpi-meta">Maintenance engineer capacity</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Operators</p>
+          <div class="enterprise-kpi-value">{{ operatorCount }}</div>
+        </div>
+        <span class="enterprise-kpi-icon">OP</span>
+      </div>
+      <p class="enterprise-kpi-meta">Fault logging operators</p>
+    </article>
+  </div>
+
+  <section class="enterprise-panel">
+    <div
+      class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+    >
+      <div>
+        <h2 class="enterprise-panel-title">Workforce Accounts</h2>
+        <p class="enterprise-page-copy">
+          Search, filter and manage employee access.
+        </p>
+      </div>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <input
+          [formControl]="searchControl"
+          type="search"
+          class="input !min-h-[44px] !pl-4 sm:w-72"
+          placeholder="Search employee, email or ID"
+        />
+        <select
+          [formControl]="roleFilter"
+          class="input !min-h-[44px] !pl-4 sm:w-56"
+        >
+          <option value="All">All roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Maintenance Engineer">Maintenance Engineer</option>
+          <option value="Operator">Operator</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="isLoadingTable" class="skeleton-wrapper">
+      <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4, 5]">
+        <span class="skeleton-cell" *ngFor="let cell of [1, 2, 3, 4, 5]"></span>
+      </div>
+    </div>
+
+    <div
+      *ngIf="!isLoadingTable"
+      class="overflow-hidden rounded-2xl border border-th-border"
+    >
+      <div class="overflow-x-auto">
+        <table class="data-table min-w-[980px]">
+          <thead>
+            <tr>
+              <th (click)="sortBy('empId')">Employee ID</th>
+              <th (click)="sortBy('name')">Name</th>
+              <th (click)="sortBy('email')">Email</th>
+              <th (click)="sortBy('role')">Role</th>
+              <th (click)="sortBy('status')">Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of paginatedEmployees" class="table-row">
+              <td>
+                <span class="fault-id">EMP-{{ emp.empId }}</span>
+              </td>
+              <td class="font-black">{{ emp.name }}</td>
+              <td>{{ emp.email }}</td>
+              <td>
+                <span
+                  class="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-300"
+                >
+                  {{ roleLabel(emp) }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="maintenance-status"
+                  [ngClass]="
+                    isActive(emp)
+                      ? 'bg-emerald-400/15 text-emerald-300 border-emerald-400/20'
+                      : 'bg-red-400/15 text-red-300 border-red-400/20'
+                  "
+                >
+                  {{ isActive(emp) ? "Active" : "Suspended" }}
+                </span>
+              </td>
+              <td>
+                <div class="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    #suspendDays
+                    value="7"
+                    min="1"
+                    class="input !h-9 !min-h-0 !w-20 !pl-3 text-xs"
+                    aria-label="Suspension days"
+                  />
+                  <button
+                    type="button"
+                    class="task-action-btn action-progress !px-3 !py-2 text-xs"
+                    (click)="disableEmployee(emp.empId, suspendDays.value)"
+                  >
+                    Suspend
+                  </button>
+                  <button
+                    type="button"
+                    class="task-action-btn action-danger !px-3 !py-2 text-xs"
+                    (click)="deleteEmployee(emp.empId)"
+                  >
+                    Deactivate
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredEmployees.length === 0">
+              <td colspan="6" class="py-12 text-center text-th-muted">
+                No employee records found.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pagination-bar" *ngIf="filteredEmployees.length > 0">
+      <span class="text-sm font-bold text-th-muted">
+        Showing {{ startIndex }}-{{ endIndex }} of
+        {{ filteredEmployees.length }} employees
+      </span>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="page-btn"
+          (click)="prevPage()"
+          [disabled]="currentPage === 1"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          class="page-btn"
+          *ngFor="let item of pages()"
+          [disabled]="item === '...'"
+          [ngClass]="
+            item === '...'
+              ? 'page-inactive'
+              : item === currentPage
+                ? 'page-active'
+                : 'page-inactive'
+          "
+          (click)="changePageFromItem(item)"
+        >
+          {{ item }}
+        </button>
+        <button
+          type="button"
+          class="page-btn"
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div
+    *ngIf="showEmployeeModal"
+    class="engineer-modal-backdrop"
+    (click)="closeEmployeeModal()"
+  >
+    <section class="engineer-modal" (click)="$event.stopPropagation()">
+      <div class="engineer-card-head">
+        <div>
+          <p class="enterprise-page-eyebrow">Secure employee registration</p>
+          <h2 class="enterprise-panel-title">Add Employee</h2>
+        </div>
+        <button
+          type="button"
+          class="enterprise-icon-button"
+          (click)="closeEmployeeModal()"
+        >
+          X
+        </button>
+      </div>
+
+      <form [formGroup]="empForm" (ngSubmit)="onSubmit()" class="raise-form">
+        <label>
+          <span>Name</span>
+          <input
+            formControlName="name"
+            type="text"
+            class="input !min-h-[44px] !pl-4"
+            placeholder="Rahul Sharma"
+          />
+          <small
+            *ngIf="f['name'].invalid && f['name'].touched"
+            class="text-red-300"
+            >Use at least 3 letters.</small
+          >
+        </label>
+        <label>
+          <span>Email</span>
+          <input
+            formControlName="email"
+            type="email"
+            class="input !min-h-[44px] !pl-4"
+            placeholder="employee@tcs.com"
+          />
+          <small
+            *ngIf="f['email'].invalid && f['email'].touched"
+            class="text-red-300"
+            >Use a valid corporate email.</small
+          >
+        </label>
+        <label>
+          <span>Date of Birth</span>
+          <input
+            formControlName="dob"
+            type="date"
+            class="input !min-h-[44px] !pl-4"
+          />
+          <small
+            *ngIf="f['dob'].invalid && f['dob'].touched"
+            class="text-red-300"
+            >Employee must be at least 21.</small
+          >
+        </label>
+        <label>
+          <span>Role</span>
+          <select formControlName="role" class="input !min-h-[44px] !pl-4">
+            <option value="Maintenance_engineer">Maintenance Engineer</option>
+            <option value="Operator">Operator</option>
+          </select>
+        </label>
+        <label class="raise-form-full">
+          <span>Temporary Password</span>
+          <input
+            formControlName="password"
+            type="password"
+            class="input !min-h-[44px] !pl-4"
+            placeholder="Minimum 8 characters"
+          />
+          <div class="password-check-grid">
+            <span
+              *ngFor="let check of passwordChecks"
+              [class.valid]="check.valid"
+            >
+              {{ check.valid ? "OK" : "--" }} {{ check.label }}
+            </span>
+          </div>
+        </label>
+
+        <div class="engineer-modal-actions raise-form-full">
+          <button
+            type="button"
+            class="enterprise-btn-secondary"
+            (click)="closeEmployeeModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="enterprise-btn"
+            [disabled]="empForm.invalid || isSubmitting"
+          >
+            <span *ngIf="isSubmitting" class="mini-spinner"></span>
+            {{ isSubmitting ? "Registering..." : "Register Employee" }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div
+    *ngIf="pendingDeleteId || pendingSuspend"
+    class="engineer-modal-backdrop"
+    (click)="cancelConfirm()"
+  >
+    <section class="enterprise-confirm-card" (click)="$event.stopPropagation()">
+      <p class="enterprise-page-eyebrow">Confirm account action</p>
+      <h2>
+        {{ pendingDeleteId ? "Deactivate employee?" : "Suspend employee?" }}
+      </h2>
+      <p>
+        {{
+          pendingDeleteId
+            ? "This employee account will be deactivated and kept for audit history."
+            : "This employee account will be temporarily suspended."
+        }}
+      </p>
+      <div class="engineer-modal-actions">
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="cancelConfirm()"
+        >
+          Cancel
+        </button>
+        <button
+          *ngIf="pendingDeleteId"
+          type="button"
+          class="task-action-btn action-danger"
+          (click)="confirmDelete()"
+        >
+          Deactivate
+        </button>
+        <button
+          *ngIf="pendingSuspend"
+          type="button"
+          class="task-action-btn action-progress"
+          (click)="confirmSuspend()"
+        >
+          Suspend
+        </button>
+      </div>
+    </section>
+  </div>
+</section>

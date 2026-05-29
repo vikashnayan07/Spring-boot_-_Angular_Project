@@ -1,0 +1,68 @@
+.notification-badge {
+  position: absolute;
+  top: -0.42rem;
+  right: -0.42rem;
+  display: inline-flex;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--th-bg2);
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  animation: badgePulse 1.6s ease-in-out infinite;
+}
+
+.notification-dropdown,
+.profile-dropdown {
+  background: color-mix(in srgb, var(--th-bg2) 96%, #020617) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 24px 70px rgba(2, 6, 23, 0.46);
+}
+
+.notification-item {
+  background: color-mix(in srgb, var(--th-bg2) 92%, transparent);
+}
+
+.notification-item:hover,
+.notification-item.unread {
+  background: color-mix(in srgb, var(--th-bg3) 88%, var(--th-bg2));
+}
+
+.notification-icon,
+.empty-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.85rem;
+  background: rgba(37, 99, 235, 0.12);
+  color: #22d3ee;
+}
+
+.notification-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.empty-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.34);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
