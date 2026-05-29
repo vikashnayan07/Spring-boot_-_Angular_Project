@@ -17,6 +17,12 @@ pipeline {
             }
         }
 
+        stage('Copy Frontend') {
+            steps {
+                bat 'xcopy /E /I /Y frontend\\dist\\angular\\browser\\* backend\\src\\main\\resources\\static\\'
+            }
+        }
+
         stage('Build Backend') {
             steps {
                 dir('backend') {
