@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MachCare | Admin Dashboard</title>
+
+<style>
+:root {
+  --bg: #0b0f14;
+  --bg-soft: #0f141b;
+  --card: rgba(255,255,255,0.05);
+  --glass: rgba(255,255,255,0.06);
+  --text: #e6edf3;
+  --muted: #9aa4af;
+  --border: rgba(255,255,255,0.08);
+  --gradient: linear-gradient(90deg,#00eaff,#7a5cff);
+}
+
+/* LIGHT THEME OVERRIDE */
+body.light {
+  --bg: #f5f7fb;
+  --bg-soft: #ffffff;
+  --card: rgba(0,0,0,0.04);
+  --glass: rgba(255,255,255,0.9);
+  --text: #0f172a;
+  --muted: #475569;
+  --border: rgba(15,23,42,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; }
+
+body { background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--bg-soft);
+  border-right: 1px solid var(--border);
+  padding: 24px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  color: transparent;
+  text-align: center;
+}
+
+.menu a {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  transition: 0.2s;
+}
+
+.menu a:hover { background: var(--glass); transform: translateX(5px); }
+
+/* MAIN CONTENT */
+.main { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
+
+.navbar {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--glass);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+
+.nav-right { display: flex; gap: 12px; align-items: center; }
+
+.theme-toggle-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.logout-btn {
+  background: rgba(239,68,68,0.15);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: #ef4444;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.content { padding: 40px 24px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.stat-card {
+  padding: 24px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  transition: transform 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover { transform: translateY(-5px); }
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 4px;
+  background: var(--accent, #38bdf8);
+}
+
+.stat-card-critical { --accent: #ef4444; }
+.stat-card-warning { --accent: #f59e0b; }
+.stat-card-success { --accent: #4ade80; }
+
+.stat-title { font-size: 14px; color: var(--muted); }
+.stat-value { font-size: 32px; font-weight: 700; margin-top: 8px; }
+
+.footer { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">MachCare</div>
+  <nav class="menu">
+    <a href="NewMachine.html">New Machine</a>
+    <a href="ErrorLogs.html">Error Logs</a>
+    <a href="FaultAnalysis.html">Fault Analysis</a>
+    <a href="Maintenance.html">Maintenance</a>
+    <a href="Inventory.html">Inventory</a>
+    <a href="EmployeeManagement.html">Employees</a>
+  </nav>
+</aside>
+
+<div class="main">
+  <header class="navbar">
+    <span id="welcomeText">Admin Dashboard</span>
+    <div class="nav-right">
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <section class="content">
+    <div class="stats-grid">
+      <div class="stat-card stat-card-critical">
+        <div class="stat-title">Active Errors</div>
+        <div class="stat-value" id="activeErrors">--</div>
+      </div>
+
+      <div class="stat-card stat-card-warning">
+        <div class="stat-title">Pending Maintenance</div>
+        <div class="stat-value" id="pendingMaintenance">--</div>
+      </div>
+
+      <div class="stat-card stat-card-success">
+        <div class="stat-title">Completed Tasks</div>
+        <div class="stat-value" id="completedTasks">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">MTBF (Mean Time Between Failures)</div>
+        <div class="stat-value" id="mtbfValue">-- hrs</div>
+      </div>
+
+      <div class="stat-card stat-card-warning">
+        <div class="stat-title">MTTR (Mean Time to Repair)</div>
+        <div class="stat-value" id="mttrValue">-- hrs</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">© 2026 MachCare • Intelligent Industrial Monitoring</footer>
+</div>
+
+<script>
+/* ==========================================
+1. SECURITY & INITIALIZATION
+========================================== */
+window.onload = function() {
+ // We use .toUpperCase() to ensure "admin" or "ADMIN" both pass the check
+ const rawRole = localStorage.getItem("role");
+ const role = rawRole ? rawRole.toUpperCase() : null;
+ const name = localStorage.getItem("name");
+
+ console.log("Authenticated Role:", role);
+
+ // Block unauthorized access - Redirect to the root login page
+ if (role !== "ADMIN") {
+     console.warn("Unauthorized access attempt. Redirecting to login...");
+     // Use /login.html to ensure it finds the root static folder
+     window.location.href = "/login.html"; 
+     return;
+ }
+
+ // Display the logged-in user's name from the DB
+ if(name) {
+     document.getElementById("welcomeText").textContent = `Welcome, ${name}`;
+ }
+
+ // Load live KPI data from your Spring Boot Backend
+ fetchStats();
+};
+
+/* ==========================================
+2. API DATA FETCHING (MTTR, MTBF, etc.)
+========================================== */
+async function fetchStats() {
+ try {
+     // Pointing to your new AdminStatsController
+     const response = await fetch('http://localhost:8080/api/admin/stats');
+     
+     if (response.ok) {
+         const data = await response.json();
+         
+         // Update UI with real data from PostgreSQL
+         document.getElementById("activeErrors").textContent = data.activeErrors || 0;
+         document.getElementById("pendingMaintenance").textContent = data.pendingMaintenance || 0;
+         document.getElementById("completedTasks").textContent = data.completedTasks || 0;
+         
+         // Binding MTBF and MTTR values
+         document.getElementById("mtbfValue").textContent = `${data.mtbf || 0} hrs`;
+         document.getElementById("mttrValue").textContent = `${data.mttr || 0} hrs`;
+         
+         console.log("Dashboard KPIs updated successfully.");
+     } else {
+         throw new Error("Backend returned an error");
+     }
+ } catch (error) {
+     console.error("Fetch error (Using Fallback Data):", error);
+     
+     // Static Fallbacks so the UI doesn't look empty during development
+     document.getElementById("activeErrors").textContent = "3";
+     document.getElementById("pendingMaintenance").textContent = "5";
+     document.getElementById("completedTasks").textContent = "12";
+     document.getElementById("mtbfValue").textContent = "3.2 hrs";
+     document.getElementById("mttrValue").textContent = "2.4 hrs";
+ }
+}
+
+/* ==========================================
+3. UTILITIES
+========================================== */
+function logout() {
+ localStorage.clear(); // Clears role and name
+ window.location.href = "/login.html";
+}
+
+function toggleTheme() {
+ const isLight = document.body.classList.toggle("light");
+ localStorage.setItem("theme", isLight ? "light" : "dark");
+ updateThemeIcon();
+}
+
+function updateThemeIcon() {
+ const btn = document.querySelector(".theme-toggle-btn");
+ if (btn) {
+     btn.textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
+ }
+}
+
+//Apply saved theme on page load
+if (localStorage.getItem("theme") === "light") {
+ document.body.classList.add("light");
+ updateThemeIcon();
+}
