@@ -34,7 +34,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/engineer")
-@CrossOrigin(origins = "*") // Good practice to add this here too
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class EngineerController {
 
     @Autowired

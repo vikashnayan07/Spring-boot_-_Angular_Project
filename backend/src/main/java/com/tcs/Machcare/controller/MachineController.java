@@ -18,7 +18,13 @@ import com.tcs.Machcare.util.Jwtutil;
 
 @RestController
 @RequestMapping({"/api/admin/machines", "/api/machines"}) // ✅ Upgraded to the secure Admin path!
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class MachineController {
 
     private final MachineService service;

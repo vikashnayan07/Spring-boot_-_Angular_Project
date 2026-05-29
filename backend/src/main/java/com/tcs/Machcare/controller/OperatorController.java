@@ -33,7 +33,13 @@ import com.tcs.Machcare.util.Jwtutil;
 
 @RestController
 @RequestMapping("/api/operator/faults")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class OperatorController {
 
     @Autowired private FaultLogService faultService;
