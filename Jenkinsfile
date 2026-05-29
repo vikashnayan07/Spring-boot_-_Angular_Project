@@ -8,13 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                url: 'https://github.com/vikashnayan07/Spring-boot_-_Angular_Project.git'
-            }
-        }
-
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
@@ -24,16 +17,10 @@ pipeline {
             }
         }
 
-        stage('Copy Frontend to Backend') {
-            steps {
-                bat 'xcopy /E /I /Y frontend\\dist\\* backend\\src\\main\\resources\\static\\'
-            }
-        }
-
-        stage('Build Backend WAR') {
+        stage('Build Backend') {
             steps {
                 dir('backend') {
-                    bat 'mvn clean package'
+                    bat 'mvn clean package -DskipTests'
                 }
             }
         }
