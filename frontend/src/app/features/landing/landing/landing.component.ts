@@ -17,7 +17,7 @@ import { Router } from '@angular/router';
   templateUrl: './landing.component.html',
 })
 export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
-  readonly logoSrc = '/landing/logo.png';
+  readonly logoSrc = 'landing/logo.png';
   readonly aboutCards = [
     {
       icon: '◆',
@@ -41,7 +41,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly serviceCards = [
     {
       title: 'Predictive Maintenance',
-      image: '/landing/service_image1.png',
+      image: 'landing/service_image1.png',
       phrases: [
         'Prevent Before Failure',
         'Predict Early. Act Early.',
@@ -52,7 +52,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Real-Time Monitoring',
-      image: '/landing/service_image2.png',
+      image: 'landing/service_image2.png',
       phrases: [
         'Monitor Every Machine',
         'Live Signals. Clear Action.',
@@ -63,7 +63,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       title: 'Fault Analytics',
-      image: '/landing/service_image3.png',
+      image: 'landing/service_image3.png',
       phrases: [
         'Predict. Detect. Resolve.',
         'Turn Data Into Decisions',
@@ -82,19 +82,19 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   readonly serviceShowcase = [
     {
-      src: '/landing/service_image1.png',
+      src: 'landing/service_image1.png',
       title: 'Real-Time Machine Monitoring',
       description:
         'Unified live visibility across machines, alerts, and uptime signals for operational control.',
     },
     {
-      src: '/landing/service_image2.png',
+      src: 'landing/service_image2.png',
       title: 'Predictive Fault Intelligence',
       description:
         'Identify maintenance risks early with intelligent analysis that highlights failure patterns.',
     },
     {
-      src: '/landing/service_image3.png',
+      src: 'landing/service_image3.png',
       title: 'Smart Engineer Assignment',
       description:
         'Route issues to the right engineer faster with guided task assignment and response flow.',
