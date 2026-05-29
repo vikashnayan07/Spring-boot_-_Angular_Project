@@ -1,0 +1,351 @@
+<div
+  class="min-h-screen
+         bg-[#0b1120]
+         text-white
+         px-8 py-6">
+
+  <!-- HEADER -->
+
+  <div
+    class="flex justify-between items-center
+           mb-10">
+
+    <div>
+
+      <h1
+        class="text-4xl font-bold tracking-tight">
+
+        Maintenance Schedule
+
+      </h1>
+
+      <p class="text-slate-400 mt-2">
+
+        All assigned maintenance tasks
+        across the system
+
+      </p>
+
+    </div>
+
+    <!-- STATUS -->
+
+    <div
+      class="flex items-center gap-3
+             bg-white/5 border border-white/10
+             px-4 py-2 rounded-2xl">
+
+      <div
+        class="w-2.5 h-2.5 rounded-full
+               bg-emerald-400 animate-pulse">
+      </div>
+
+      <span class="text-sm text-slate-300">
+
+        Live Schedule
+
+      </span>
+
+    </div>
+
+  </div>
+
+  <!-- LOADING -->
+
+  <div
+    *ngIf="loading"
+    class="flex justify-center items-center
+           h-[60vh]">
+
+    <div
+      class="w-12 h-12 rounded-full
+             border-2 border-slate-500
+             border-t-white animate-spin">
+    </div>
+
+  </div>
+
+  <!-- EMPTY -->
+
+  <div
+    *ngIf="!loading && schedules.length === 0"
+    class="flex flex-col justify-center items-center
+           h-[60vh]">
+
+    <div class="text-7xl mb-5">
+      📅
+    </div>
+
+    <h2 class="text-2xl font-semibold mb-2">
+      No Scheduled Tasks
+    </h2>
+
+    <p class="text-slate-400">
+      Assigned maintenance tasks
+      will appear here
+    </p>
+
+  </div>
+
+  <!-- TABLE -->
+
+  <div
+    *ngIf="!loading && schedules.length > 0"
+    class="overflow-hidden
+           rounded-3xl
+           border border-white/10
+           bg-white/[0.03]
+           backdrop-blur-xl">
+
+    <table class="w-full">
+
+      <!-- HEAD -->
+
+      <thead
+        class="bg-white/[0.04]
+               border-b border-white/10">
+
+        <tr>
+
+          <th
+            class="text-left px-6 py-5
+                   text-sm font-semibold
+                   text-slate-300">
+
+            Schedule ID
+
+          </th>
+
+          <th
+            class="text-left px-6 py-5
+                   text-sm font-semibold
+                   text-slate-300">
+
+            Machine
+
+          </th>
+
+          <th
+            class="text-left px-6 py-5
+                   text-sm font-semibold
+                   text-slate-300">
+
+            Engineer
+
+          </th>
+
+          <th
+            class="text-left px-6 py-5
+                   text-sm font-semibold
+                   text-slate-300">
+
+            Date
+
+          </th>
+
+          <th
+            class="text-left px-6 py-5
+                   text-sm font-semibold
+                   text-slate-300">
+
+            Status
+              </th>
+            <th
+
+  *ngIf="role === 'ENGINEER'"
+
+  class="text-left px-6 py-5
+         text-sm font-semibold
+         text-slate-300">
+
+  Actions
+
+</th>
+
+        
+
+        </tr>
+
+      </thead>
+
+      <!-- BODY -->
+
+      <tbody>
+
+        <tr
+
+          *ngFor="let item of schedules"
+
+          class="border-b border-white/[0.05]
+                 hover:bg-white/[0.03]
+                 transition-all duration-300">
+
+          <!-- SCHEDULE ID -->
+
+          <td class="px-6 py-5">
+
+            <div
+              class="font-semibold text-cyan-300">
+
+              #{{item.scheduleId}}
+
+            </div>
+
+          </td>
+
+          <!-- MACHINE -->
+
+          <td class="px-6 py-5">
+
+            <div>
+
+              <h3
+                class="font-semibold text-lg">
+
+                {{item.machineId}}
+
+              </h3>
+
+              <p
+                class="text-slate-500 text-sm">
+
+                Machine Unit
+
+              </p>
+
+            </div>
+
+          </td>
+
+          <!-- ENGINEER -->
+
+          <td class="px-6 py-5">
+
+            <div
+              class="flex items-center gap-3">
+
+              <div
+                class="w-10 h-10 rounded-xl
+                       bg-cyan-400/15
+                       flex items-center justify-center
+                       text-cyan-300 font-semibold">
+
+                {{item.empId}}
+
+              </div>
+
+              <div>
+
+                <h3 class="font-medium">
+
+                  Engineer
+
+                </h3>
+
+                <p
+                  class="text-slate-500 text-sm">
+
+                  EMP-{{item.empId}}
+
+                </p>
+
+              </div>
+
+            </div>
+
+          </td>
+
+          <!-- DATE -->
+
+          <td class="px-6 py-5">
+
+            <div
+              class="text-slate-300">
+
+              {{item.scheduleDate}}
+
+            </div>
+
+          </td>
+
+          <!-- STATUS -->
+
+          <td class="px-6 py-5">
+
+            <span
+
+              class="px-4 py-2 rounded-full
+                     text-sm font-medium"
+
+              [ngClass]="{
+
+                'bg-amber-400/15 text-amber-300':
+                  item.status == 'Pending',
+
+                'bg-cyan-400/15 text-cyan-300':
+                  item.status == 'In_progress',
+
+                'bg-emerald-400/15 text-emerald-300':
+                  item.status == 'Completed'
+
+              }">
+
+              {{item.status}}
+
+            </span>
+
+          </td>
+          <td
+
+  *ngIf="role === 'ENGINEER'"
+
+  class="px-6 py-5">
+
+  <div class="flex gap-3">
+
+    <!-- REQUEST PART -->
+
+    <button
+
+      class="px-4 py-2 rounded-xl
+             bg-cyan-500/15
+             hover:bg-cyan-500/25
+             border border-cyan-400/20
+             text-cyan-300
+             text-sm font-medium
+             transition-all duration-300">
+
+      Request Part
+
+    </button>
+
+    <!-- UPDATE STATUS -->
+
+    <select
+
+      class="bg-[#0f172a]
+             border border-white/10
+             rounded-xl px-3 py-2
+             text-sm outline-none">
+
+      <option>Pending</option>
+
+      <option>In_progress</option>
+
+      <option>Completed</option>
+
+    </select>
+
+  </div>
+
+</td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

@@ -1,0 +1,399 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+                <th (click)="sortPendingBy('faultId')">Fault ID</th>
+                <th (click)="sortPendingBy('machineId')">Machine ID</th>
+                <th (click)="sortPendingBy('severity')">Severity</th>
+                <th (click)="sortPendingBy('priorityLevel')">Priority</th>
+                <th (click)="sortPendingBy('faultDate')">Fault Date</th>
+      <h1 class="enterprise-page-title gradient-text">
+        Analysis Command Center
+      </h1>
+      <p class="enterprise-page-copy">
+        Prioritize, analyze and resolve industrial machine faults
+      </p>
+    </div>
+
+    <div class="enterprise-toolbar">
+      <span class="enterprise-status">
+        <span class="enterprise-status-dot"></span>
+        Engineer queue live
+      </span>
+      <button
+        type="button"
+        class="enterprise-btn-secondary"
+        (click)="loadWorkspace()"
+      >
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Pending Analysis</span
+        ><span class="enterprise-kpi-icon">PA</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ pendingFaults.length }}</div>
+      <p class="enterprise-kpi-meta">Priority-sorted fault queue</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Completed</span
+        ><span class="enterprise-kpi-icon">CA</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ completedAnalyses.length }}</div>
+      <p class="enterprise-kpi-meta">Analyzed machine faults</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Critical Priority</span
+        ><span class="enterprise-kpi-icon">P1</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ criticalPriorityFaults }}</div>
+      <p class="enterprise-kpi-meta">P1 faults in pending queue</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Critical Alerts</span
+        ><span class="enterprise-kpi-icon">AL</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ criticalAlerts }}</div>
+      <p class="enterprise-kpi-meta">System-generated risk alerts</p>
+    </article>
+  </div>
+
+  <section class="enterprise-panel">
+    <div
+      *ngIf="processingFaultId"
+      class="fixed left-1/2 top-1/2 z-[1000] w-[min(92vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-cyan-400/40 bg-slate-950/95 px-8 py-7 text-center shadow-[0_0_55px_rgba(34,211,238,.32)] backdrop-blur-xl animate-pulse"
+    >
+      <p class="text-sm font-black text-cyan-200">
+        Running Machine Intelligence Analysis...
+      </p>
+      <p class="mt-1 text-xs font-semibold text-slate-300">
+        Fault {{ processingFaultId }} is being evaluated.
+      </p>
+    </div>
+
+    <div
+      *ngIf="loadError"
+      class="fixed left-1/2 top-1/2 z-[1000] w-[min(92vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-red-400/40 bg-slate-950/95 px-8 py-7 text-center shadow-[0_0_55px_rgba(239,68,68,.32)] backdrop-blur-xl animate-pulse"
+    >
+      <p class="text-sm font-black text-red-200">Analysis action blocked</p>
+      <p class="mt-1 text-xs font-semibold text-slate-300">{{ loadError }}</p>
+    </div>
+
+    <div
+      class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+    >
+      <div
+        class="inline-flex rounded-2xl border border-th-border bg-th-card p-1"
+      >
+        <button
+          type="button"
+          (click)="activeTab = 'pending'"
+          class="rounded-xl px-5 py-2 text-sm font-black transition-all"
+          [ngClass]="
+            activeTab === 'pending'
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-400 text-white shadow-lg'
+              : 'text-th-muted hover:text-th-text'
+          "
+        >
+          Pending Analysis
+        </button>
+        <button
+          type="button"
+          (click)="activeTab = 'completed'"
+          class="rounded-xl px-5 py-2 text-sm font-black transition-all"
+          [ngClass]="
+            activeTab === 'completed'
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-400 text-white shadow-lg'
+              : 'text-th-muted hover:text-th-text'
+          "
+        >
+          Completed Analysis
+        </button>
+      </div>
+
+      <input
+        [(ngModel)]="searchTerm"
+        class="input !min-h-[44px] !pl-4 lg:w-80"
+        placeholder="Search fault, machine or status"
+      />
+      <select
+        class="input !min-h-[44px] !pl-4 sm:w-36"
+        [ngModel]="rowsPerPage"
+        (ngModelChange)="changeRowsPerPage($event)"
+      >
+        <option *ngFor="let size of pageSizes" [value]="size">
+          {{ size }} rows
+        </option>
+      </select>
+    </div>
+
+    <div
+      *ngIf="processingFaultId"
+      class="mb-5 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-5 text-center"
+    >
+      <div
+        class="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-cyan-400"
+      ></div>
+      <p class="font-black text-cyan-200">
+        Running Machine Intelligence Analysis...
+      </p>
+      <p class="text-sm text-th-muted">
+        Fault {{ processingFaultId }} is being evaluated against health, trend
+        and risk rules.
+      </p>
+    </div>
+
+    <ng-container *ngIf="!isLoading; else loadingState">
+      <div
+        *ngIf="activeTab === 'pending'"
+        class="overflow-hidden rounded-2xl border border-th-border"
+      >
+        <div class="overflow-x-auto">
+          <table class="data-table min-w-[1040px]">
+            <thead>
+              <tr>
+                <th>Fault ID</th>
+                <th>Machine ID</th>
+                <th>Severity</th>
+                <th>Priority Level</th>
+                <th>Priority Score</th>
+                <th>Production Impact</th>
+                <th>MTBF</th>
+                <th>MTTR</th>
+                <th>Logged Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let fault of paginatedPending"
+                class="table-row"
+                [class.engineer-raised-row]="isEngineerRaised(fault)"
+              >
+                <td>
+                  <span class="fault-id">{{ fault.faultId }}</span>
+                  <span
+                    *ngIf="isEngineerRaised(fault)"
+                    class="engineer-raised-badge"
+                    >ENGINEER RAISED</span
+                  >
+                </td>
+                <td class="font-black">{{ fault.machineId }}</td>
+                <td>
+                  <span
+                    class="severity-badge severity-{{
+                      (fault.severity || '').toLowerCase()
+                    }}"
+                    >{{ fault.severity }}</span
+                  >
+                </td>
+                <td>
+                  <span
+                    class="inline-flex rounded-full border px-3 py-1 text-xs font-black"
+                    [ngClass]="priorityClass(fault.priorityLevel)"
+                    >{{ fault.priorityLevel }}</span
+                  >
+                </td>
+                <td class="font-data font-black">
+                  {{ fault.priorityScore || 0 }}
+                </td>
+                <td>{{ fault.productionImpactScore || 0 }}</td>
+                <td>{{ fault.mtbfHours || fault.expectedMtbf || 0 }}h</td>
+                <td>{{ fault.mttr ?? fault.expectedMttr ?? 0 }}m</td>
+                <td>{{ fault.faultDate }} {{ fault.faultTime }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="enterprise-btn"
+                    [disabled]="!!processingFaultId"
+                    (click)="analyzeFault(fault)"
+                  >
+                    Analyze
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredPending.length === 0">
+                <td colspan="10" class="py-12 text-center text-th-muted">
+                  No pending faults are waiting for analysis.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" *ngIf="filteredPending.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing {{ showingStart(filteredPending.length, pendingPage) }}-{{
+              showingEnd(filteredPending.length, pendingPage)
+            }}
+            of {{ filteredPending.length }} faults
+          </span>
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('pending', pendingPage - 1)"
+              [disabled]="pendingPage === 1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(pendingTotalPages, pendingPage)"
+              [disabled]="page === '...'"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === pendingPage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              (click)="changePageFromItem('pending', page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('pending', pendingPage + 1)"
+              [disabled]="pendingPage === pendingTotalPages"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="activeTab === 'completed'"
+        class="overflow-hidden rounded-2xl border border-th-border"
+      >
+        <div class="overflow-x-auto">
+          <table class="data-table min-w-[1040px]">
+            <thead>
+              <tr>
+                <th (click)="sortCompletedBy('analysisId')">Analysis ID</th>
+                <th (click)="sortCompletedBy('faultId')">Fault ID</th>
+                <th (click)="sortCompletedBy('healthScore')">Health Score</th>
+                <th (click)="sortCompletedBy('healthStatus')">Health Status</th>
+                <th (click)="sortCompletedBy('failureTrend')">Failure Trend</th>
+                <th>MTBF</th>
+                <th>MTTR</th>
+                <th>Alert Status</th>
+                <th>Analyzed At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let analysis of paginatedCompleted"
+                class="table-row"
+                [class.engineer-raised-row]="isEngineerRaised(analysis)"
+              >
+                <td>
+                  <span class="fault-id">{{ analysis.analysisId }}</span>
+                </td>
+                <td class="font-black">
+                  {{ analysis.faultId }}
+                  <span
+                    *ngIf="isEngineerRaised(analysis)"
+                    class="engineer-raised-badge"
+                    >ENGINEER RAISED</span
+                  >
+                </td>
+                <td class="font-data font-black">
+                  {{ analysis.healthScore || 0 }}%
+                </td>
+                <td>{{ analysis.healthStatus || analysis.riskScore }}</td>
+                <td>{{ analysis.failureTrend || "Stable" }}</td>
+                <td>{{ analysis.mtbfHours || 0 }}h</td>
+                <td>{{ analysis.mttr ?? 0 }}m</td>
+                <td>
+                  <span class="enterprise-status">
+                    <span class="enterprise-status-dot"></span>
+                    {{ alertStatus(analysis) }}
+                  </span>
+                </td>
+                <td>{{ analysis.analysisId }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="enterprise-btn-secondary"
+                    (click)="viewAnalysis(analysis)"
+                  >
+                    View Analysis
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredCompleted.length === 0">
+                <td colspan="10" class="py-12 text-center text-th-muted">
+                  No completed analysis records found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" *ngIf="filteredCompleted.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing
+            {{ showingStart(filteredCompleted.length, completedPage) }}-{{
+              showingEnd(filteredCompleted.length, completedPage)
+            }}
+            of {{ filteredCompleted.length }} analyses
+          </span>
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('completed', completedPage - 1)"
+              [disabled]="completedPage === 1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(completedTotalPages, completedPage)"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === completedPage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              [disabled]="page === '...'"
+              (click)="changePageFromItem('completed', page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('completed', completedPage + 1)"
+              [disabled]="completedPage === completedTotalPages"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #loadingState>
+      <div class="skeleton-wrapper">
+        <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4, 5]">
+          <span
+            class="skeleton-cell"
+            *ngFor="let cell of [1, 2, 3, 4, 5, 6, 7]"
+          ></span>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+</section>

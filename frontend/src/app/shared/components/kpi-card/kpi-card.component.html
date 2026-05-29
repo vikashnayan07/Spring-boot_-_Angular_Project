@@ -1,0 +1,63 @@
+<div class="kpi-card group relative overflow-hidden rounded-2xl border border-th-border bg-th-card p-5 hover:scale-[1.02] transition-all duration-300 cursor-default">
+
+  <!-- Gradient accent bar -->
+  <div class="absolute top-0 left-0 right-0 h-[3px]"
+    [ngClass]="{
+      'gradient-bar-violet': color === 'violet',
+      'gradient-bar-cyan': color === 'cyan',
+      'gradient-bar-blue': color === 'blue',
+      'gradient-bar-emerald': color === 'emerald'
+    }">
+  </div>
+
+  <!-- Hover glow -->
+  <div class="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+    [ngClass]="{
+      'bg-violet-500/5': color === 'violet',
+      'bg-cyan-500/5': color === 'cyan',
+      'bg-blue-500/5': color === 'blue',
+      'bg-emerald-500/5': color === 'emerald'
+    }">
+  </div>
+
+  <!-- Content -->
+  <div class="relative flex items-start justify-between">
+
+    <!-- Left -->
+    <div>
+      <p class="text-th-text2 text-sm font-medium font-body">{{title}}</p>
+      <h2 class="text-3xl font-bold mt-2 tracking-tight text-th-text font-heading font-data">{{value}}</h2>
+    </div>
+
+    <!-- Icon -->
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+      [ngClass]="{
+        'bg-violet-500/10 border border-violet-500/20': color === 'violet',
+        'bg-cyan-500/10 border border-cyan-500/20': color === 'cyan',
+        'bg-blue-500/10 border border-blue-500/20': color === 'blue',
+        'bg-emerald-500/10 border border-emerald-500/20': color === 'emerald'
+      }">
+      {{icon}}
+    </div>
+
+  </div>
+
+  <!-- Trend -->
+  <div class="relative mt-4 flex items-center gap-2">
+    <div class="flex items-center gap-1 text-sm font-medium font-body"
+      [ngClass]="{
+        'trend-up': trendUp,
+        'trend-down': !trendUp
+      }">
+      <svg *ngIf="trendUp" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M7 17l9.2-9.2M17 17V7H7" />
+      </svg>
+      <svg *ngIf="!trendUp" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 7l-9.2 9.2M7 7v10h10" />
+      </svg>
+      {{trend}}
+    </div>
+    <span class="text-th-muted text-xs font-body">vs yesterday</span>
+  </div>
+
+</div>

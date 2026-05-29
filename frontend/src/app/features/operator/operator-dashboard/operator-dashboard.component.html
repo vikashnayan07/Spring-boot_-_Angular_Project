@@ -1,0 +1,194 @@
+<section class="enterprise-page">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Factory floor</p>
+      <h1 class="enterprise-page-title">
+        Hello, <span class="gradient-text">{{ operatorName }}</span>
+      </h1>
+      <p class="enterprise-page-copy">
+        Monitor machine availability and report breakdowns from one workspace.
+      </p>
+    </div>
+
+    <span class="enterprise-status">
+      <span class="enterprise-status-dot"></span>
+      Live monitoring
+    </span>
+  </header>
+
+  <div class="enterprise-grid-3">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Available machines</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.totalMachines }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">MC</span>
+      </div>
+      <p class="enterprise-kpi-meta">Machines visible to operators</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Running smoothly</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.running }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">OK</span>
+      </div>
+      <p class="enterprise-kpi-meta">Healthy operational state</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Faults raised today</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.faultsRaisedToday }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">TD</span>
+      </div>
+      <p class="enterprise-kpi-meta">Live fault logs recorded today</p>
+    </article>
+  </div>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Critical maintenance required</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{
+              stats.criticalMaintenanceRequired
+            }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">CR</span>
+      </div>
+      <p class="enterprise-kpi-meta">Service overdue or offline assets</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Warranty expiring</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.machineWarrantyExpiring }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WX</span>
+      </div>
+      <p class="enterprise-kpi-meta">Machines within 30 days of expiry</p>
+    </article>
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Warranty expired</p>
+          <div class="enterprise-kpi-value">
+            <span *ngIf="isLoading">--</span>
+            <span *ngIf="!isLoading">{{ stats.machineWarrantyExpired }}</span>
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WE</span>
+      </div>
+      <p class="enterprise-kpi-meta">Assets already out of warranty</p>
+    </article>
+  </div>
+
+  <section class="enterprise-panel">
+    <h2 class="enterprise-panel-title">Machine lifecycle visibility</h2>
+    <p class="enterprise-page-copy">
+      Health, warranty, and maintenance status across active machines.
+    </p>
+
+    <div *ngIf="isLoading" class="skeleton-wrapper">
+      <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4]">
+        <span class="skeleton-cell" *ngFor="let cell of [1, 2, 3, 4]"></span>
+      </div>
+    </div>
+
+    <div
+      *ngIf="!isLoading"
+      class="overflow-hidden rounded-2xl border border-th-border"
+    >
+      <div class="overflow-x-auto">
+        <table class="data-table min-w-[980px]">
+          <thead>
+            <tr>
+              <th>Machine</th>
+              <th>Health Status</th>
+              <th>Warranty Status</th>
+              <th>Critical Maintenance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let machine of machines" class="table-row">
+              <td>
+                <span class="fault-id">{{ machine.machineId }}</span>
+              </td>
+              <td>
+                <span
+                  class="inventory-status"
+                  [ngClass]="healthBadgeClass(machine.healthStatus)"
+                >
+                  {{ machine.healthStatus || "HEALTHY" }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="inventory-status"
+                  [ngClass]="warrantyBadgeClass(machine.warrantyStatus)"
+                >
+                  {{ machine.warrantyStatus || "UNKNOWN" }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="inventory-status"
+                  [ngClass]="criticalBadgeClass(machine)"
+                >
+                  {{ isCriticalMaintenance(machine) ? "REQUIRED" : "OK" }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="machines.length === 0">
+              <td colspan="4" class="py-12 text-center text-th-muted">
+                No machines available.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="enterprise-panel">
+    <h2 class="enterprise-panel-title">Operator actions</h2>
+    <div class="enterprise-action-grid">
+      <a routerLink="/operator/log-error" class="enterprise-action-card">
+        <span class="enterprise-action-icon">LG</span>
+        <span>
+          <span class="enterprise-action-title">Report a breakdown</span>
+          <span class="enterprise-action-copy">Log a new machine fault</span>
+        </span>
+      </a>
+
+      <a routerLink="/operator/machines" class="enterprise-action-card">
+        <span class="enterprise-action-icon">MR</span>
+        <span>
+          <span class="enterprise-action-title">View all machines</span>
+          <span class="enterprise-action-copy">Check live machine status</span>
+        </span>
+      </a>
+    </div>
+  </section>
+</section>

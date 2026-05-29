@@ -1,0 +1,769 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Asset intelligence</p>
+      <h1 class="enterprise-page-title gradient-text">
+        Machine Intelligence Center
+      </h1>
+      <p class="enterprise-page-copy">
+        Monitor industrial assets and configure operational intelligence
+      </p>
+    </div>
+
+    <div class="enterprise-toolbar">
+      <span class="enterprise-status">
+        <span class="enterprise-status-dot"></span>
+        Live machine registry
+      </span>
+      <button type="button" class="enterprise-btn" (click)="openAddMachine()">
+        Add Machine
+      </button>
+    </div>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article
+      class="enterprise-kpi-card hover:-translate-y-1 transition-transform"
+    >
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Total Machines</span
+        ><span class="enterprise-kpi-icon">TM</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ totalMachines }}</div>
+      <p class="enterprise-kpi-meta">Registered industrial assets</p>
+    </article>
+    <article
+      class="enterprise-kpi-card hover:-translate-y-1 transition-transform"
+    >
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Active Machines</span
+        ><span class="enterprise-kpi-icon">AC</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ activeMachines }}</div>
+      <p class="enterprise-kpi-meta">Currently running assets</p>
+    </article>
+    <article
+      class="enterprise-kpi-card hover:-translate-y-1 transition-transform"
+    >
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Critical Load</span
+        ><span class="enterprise-kpi-icon">CL</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ criticalLoadMachines }}</div>
+      <p class="enterprise-kpi-meta">Current load above 80%</p>
+    </article>
+    <article
+      class="enterprise-kpi-card hover:-translate-y-1 transition-transform"
+    >
+      <div class="enterprise-kpi-head">
+        <span class="enterprise-card-label">Maintenance Due</span
+        ><span class="enterprise-kpi-icon">MD</span>
+      </div>
+      <div class="enterprise-kpi-value">{{ maintenanceDue }}</div>
+      <p class="enterprise-kpi-meta">Maintenance or stopped status</p>
+    </article>
+  </div>
+
+  <section class="enterprise-panel min-w-0 animate-fade-in-up">
+    <ng-container *ngIf="workspaceMode === 'list'">
+      <div
+        class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"
+      >
+        <div>
+          <p class="enterprise-card-label">Primary workspace</p>
+          <h2 class="enterprise-panel-title">Machine List</h2>
+          <p class="text-sm text-th-muted">
+            Production impact = Criticality score x 0.50 + Current load x 0.30 +
+            Bottleneck bonus.
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <input
+            [formControl]="searchControl"
+            class="input !min-h-[44px] !pl-4 sm:w-72"
+            placeholder="Search machine, ID or type"
+          />
+          <select
+            [formControl]="criticalityFilter"
+            class="input !min-h-[44px] !pl-4 sm:w-48"
+          >
+            <option value="">All Criticality</option>
+            <option *ngFor="let option of criticalityOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <select
+            [formControl]="lifecycleFilter"
+            class="input !min-h-[44px] !pl-4 sm:w-48"
+          >
+            <option value="">All Lifecycle</option>
+            <option *ngFor="let option of lifecycleOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <select
+            [formControl]="healthFilter"
+            class="input !min-h-[44px] !pl-4 sm:w-48"
+          >
+            <option value="">All Health</option>
+            <option *ngFor="let option of healthOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <button
+            type="button"
+            class="enterprise-btn-secondary"
+            (click)="exportMachines()"
+          >
+            Export
+          </button>
+        </div>
+      </div>
+
+      <div
+        *ngIf="successMsg"
+        class="mb-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200"
+      >
+        {{ successMsg }}
+      </div>
+      <div
+        *ngIf="errorMsg"
+        class="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-300"
+      >
+        {{ errorMsg }}
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-th-border">
+        <div class="overflow-x-auto">
+          <table class="data-table min-w-[1400px]">
+            <thead>
+              <tr>
+                <th (click)="sortBy('machineId')">Machine ID</th>
+                <th (click)="sortBy('machineName')">Machine Name</th>
+                <th (click)="sortBy('machineType')">Machine Type</th>
+                <th (click)="sortBy('productionCriticality')">Production Criticality</th>
+                <th (click)="sortBy('currentOperationalLoad')">Current Load</th>
+                <th>Bottleneck</th>
+                <th>Expected MTBF</th>
+                <th>Expected MTTR</th>
+                <th (click)="sortBy('status')">Status</th>
+                <th (click)="sortBy('lifecycleStatus')">Lifecycle</th>
+                <th (click)="sortBy('healthStatus')">Health</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="isLoadingTable">
+                <td colspan="12" class="py-12 text-center text-th-muted">
+                  Loading machine intelligence...
+                </td>
+              </tr>
+              <tr *ngFor="let machine of paginatedMachines" class="table-row">
+                <td>
+                  <span class="fault-id">{{ machine.machineId }}</span>
+                </td>
+                <td class="font-black text-th-text">
+                  {{ machine.machineName }}
+                </td>
+                <td>{{ machine.machineType }}</td>
+                <td>
+                  <span
+                    class="severity-badge"
+                    [ngClass]="{
+                      'severity-low': machine.productionCriticality === 'Low',
+                      'severity-medium':
+                        machine.productionCriticality === 'Medium',
+                      'severity-high': machine.productionCriticality === 'High',
+                      'severity-critical':
+                        machine.productionCriticality === 'Critical',
+                    }"
+                    >{{ machine.productionCriticality || "Medium" }}</span
+                  >
+                </td>
+                <td>
+                  <div class="flex min-w-36 items-center gap-2">
+                    <div class="enterprise-progress flex-1">
+                      <span
+                        [style.width.%]="machine.currentOperationalLoad || 0"
+                      ></span>
+                    </div>
+                    <strong class="text-xs"
+                      >{{ machine.currentOperationalLoad || 0 }}%</strong
+                    >
+                  </div>
+                </td>
+                <td>{{ machine.productionBottleneck ? "Yes" : "No" }}</td>
+                <td>{{ machine.expectedMtbf || 240 }}h</td>
+                <td>{{ machine.expectedMttr || 120 }}m</td>
+                <td>
+                  <span class="enterprise-status"
+                    ><span class="enterprise-status-dot"></span
+                    >{{ machine.status }}</span
+                  >
+                </td>
+                <td>
+                  <span
+                    class="inventory-status"
+                    [ngClass]="lifecycleClass(machine)"
+                    >{{ machine.lifecycleStatus || "ACTIVE" }}</span
+                  >
+                </td>
+                <td>
+                  <span
+                    class="inventory-status"
+                    [ngClass]="healthClass(machine)"
+                    >{{ machine.healthStatus || "HEALTHY" }}</span
+                  >
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      class="enterprise-btn-secondary !min-h-9 !px-3"
+                      (click)="viewMachine(machine)"
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      class="enterprise-btn !min-h-9 !px-3"
+                      (click)="editMachine(machine)"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!isLoadingTable && filteredMachines.length === 0">
+                <td colspan="12" class="py-12 text-center text-th-muted">
+                  No machines found for the selected filters.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pagination-bar" *ngIf="filteredMachines.length > 0">
+        <span class="text-sm font-bold text-th-muted"
+          >Page {{ currentPage }} of {{ totalPages }}</span
+        >
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="page-btn"
+            (click)="prevPage()"
+            [disabled]="currentPage === 1"
+          >
+            Prev
+          </button>
+          <button
+            type="button"
+            class="page-btn"
+            *ngFor="let item of pages()"
+            [disabled]="item === '...'"
+            [ngClass]="
+              item === '...'
+                ? 'page-inactive'
+                : item === currentPage
+                  ? 'page-active'
+                  : 'page-inactive'
+            "
+            (click)="changePageFromItem(item)"
+          >
+            {{ item }}
+          </button>
+          <button
+            type="button"
+            class="page-btn"
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="workspaceMode === 'form'">
+      <div
+        class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+      >
+        <div>
+          <p class="enterprise-card-label">
+            {{ formMode === "edit" ? "Edit mode" : "Add mode" }}
+          </p>
+          <h2 class="enterprise-panel-title">
+            {{
+              formMode === "edit"
+                ? "Update Machine Intelligence"
+                : "Register Operational Asset"
+            }}
+          </h2>
+          <p class="text-sm text-th-muted">
+            Production dependency is used by the priority engine to calculate
+            fault urgency.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="backToList()"
+        >
+          Back to Machine List
+        </button>
+      </div>
+
+      <div
+        *ngIf="errorMsg"
+        class="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-300"
+      >
+        {{ errorMsg }}
+      </div>
+
+      <form
+        [formGroup]="machineForm"
+        (ngSubmit)="onSubmit()"
+        class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_420px]"
+      >
+        <div class="space-y-5">
+          <section class="rounded-2xl border border-th-border bg-th-card p-5">
+            <div class="section-label">
+              <span>Basic Info</span><span class="section-line"></span>
+            </div>
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label class="field">
+                <span class="field-label">Machine Name</span>
+                <input
+                  formControlName="machineName"
+                  class="input !pl-4"
+                  placeholder="Hydraulic Press 7"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Machine Type</span>
+                <input
+                  formControlName="machineType"
+                  class="input !pl-4"
+                  placeholder="Excavator"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Operational Status</span>
+                <select
+                  formControlName="status"
+                  class="input machine-select !pl-4"
+                >
+                  <option *ngFor="let status of statusOptions" [value]="status">
+                    {{ status }}
+                  </option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field-label">Supported Fault Types</span>
+                <input
+                  formControlName="faultType"
+                  class="input !pl-4"
+                  placeholder="Overheating, Hydraulic Failure, Sensor Fault"
+                />
+              </label>
+            </div>
+            <label class="field mt-4">
+              <span class="field-label">Description</span>
+              <textarea
+                formControlName="description"
+                rows="3"
+                class="textarea"
+                placeholder="Operational notes or asset context"
+              ></textarea>
+            </label>
+          </section>
+
+          <section class="rounded-2xl border border-th-border bg-th-card p-5">
+            <div class="section-label">
+              <span>Machine Metrics Baseline</span
+              ><span class="section-line"></span>
+            </div>
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label class="field">
+                <span class="field-label">Expected MTBF (hours)</span>
+                <input
+                  formControlName="expectedMtbf"
+                  type="number"
+                  min="1"
+                  class="input !pl-4"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Expected MTTR (minutes)</span>
+                <input
+                  formControlName="expectedMttr"
+                  type="number"
+                  min="1"
+                  class="input !pl-4"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Purchase Date</span>
+                <input
+                  formControlName="purchaseDate"
+                  type="date"
+                  class="input !pl-4"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Warranty Expiry</span>
+                <input
+                  formControlName="warrantyExpiryDate"
+                  type="date"
+                  class="input !pl-4"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Last Service</span>
+                <input
+                  formControlName="lastServiceDate"
+                  type="date"
+                  class="input !pl-4"
+                />
+              </label>
+              <label class="field">
+                <span class="field-label">Next Service Due</span>
+                <input
+                  formControlName="nextServiceDueDate"
+                  type="date"
+                  class="input !pl-4"
+                />
+              </label>
+            </div>
+          </section>
+        </div>
+
+        <aside class="space-y-5">
+          <section class="rounded-2xl border border-th-border bg-th-card p-5">
+            <div class="section-label">
+              <span>Production Intelligence</span
+              ><span class="section-line"></span>
+            </div>
+
+            <label class="field mt-4">
+              <span class="field-label">Production Criticality</span>
+              <select
+                formControlName="productionCriticality"
+                class="input machine-select !pl-4"
+              >
+                <option
+                  *ngFor="let option of criticalityOptions"
+                  [value]="option"
+                >
+                  {{ option }}
+                </option>
+              </select>
+            </label>
+
+            <div class="mt-4 grid grid-cols-2 gap-2">
+              <span
+                class="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-300"
+                >Low = 25</span
+              >
+              <span
+                class="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-300"
+                >Medium = 50</span
+              >
+              <span
+                class="rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-300"
+                >High = 75</span
+              >
+              <span
+                class="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300"
+                >Critical = 100</span
+              >
+            </div>
+
+            <div class="mt-5 rounded-2xl border border-th-border bg-th-bg3 p-4">
+              <div class="mb-4 flex items-center justify-between gap-3">
+                <span class="field-label m-0"
+                  >Current Load: {{ currentLoad }}%</span
+                >
+                <span
+                  class="rounded-full bg-gradient-to-r px-3 py-1 text-xs font-black shadow-lg"
+                  [ngClass]="loadColorClass"
+                  >{{ loadLabel }}</span
+                >
+              </div>
+              <input
+                formControlName="currentOperationalLoad"
+                type="range"
+                min="0"
+                max="100"
+                class="machine-load-slider w-full"
+                [style.background]="sliderGradient"
+              />
+              <p class="mt-4 text-xs font-semibold text-th-muted">
+                Set machine utilization based on current production demand and
+                operational dependency.
+              </p>
+              <div class="mt-4 grid gap-2 text-xs font-bold text-th-text2">
+                <span>Backup / Rarely Used -> 20</span>
+                <span>Normal Production Shift -> 55</span>
+                <span>Heavy Production Load -> 90</span>
+                <span>Under Maintenance / Offline -> 0</span>
+              </div>
+            </div>
+
+            <label
+              class="mt-4 flex items-center justify-between rounded-2xl border border-th-border bg-th-bg3 px-4 py-3"
+            >
+              <span>
+                <span class="block text-sm font-black text-th-text"
+                  >Production Bottleneck</span
+                >
+                <span class="text-xs font-semibold text-th-muted"
+                  >Adds 20 points to production impact if enabled</span
+                >
+              </span>
+              <input
+                type="checkbox"
+                formControlName="productionBottleneck"
+                class="h-5 w-5 accent-cyan-400"
+              />
+            </label>
+          </section>
+
+          <section
+            class="rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-5"
+          >
+            <p class="enterprise-card-label !text-cyan-200">
+              Production impact guide
+            </p>
+            <p class="mt-2 text-sm font-semibold text-cyan-100">
+              Impact = (Criticality x 0.50) + (Load x 0.30) + Bottleneck Bonus
+            </p>
+            <p class="mt-2 text-xs text-th-muted">
+              This score helps the backend prioritize faults from machines that
+              directly affect production flow.
+            </p>
+          </section>
+
+          <button
+            type="submit"
+            class="enterprise-btn w-full"
+            [disabled]="machineForm.invalid || isSubmitting"
+          >
+            {{
+              isSubmitting
+                ? "Saving Machine..."
+                : formMode === "edit"
+                  ? "Update Machine"
+                  : "Register Machine"
+            }}
+          </button>
+        </aside>
+      </form>
+    </ng-container>
+
+    <ng-container *ngIf="workspaceMode === 'success'">
+      <div class="success-card-modern">
+        <span class="success-orbit"></span>
+        <div class="success-checkmark">
+          <svg viewBox="0 0 96 96" aria-hidden="true">
+            <circle
+              class="success-check-circle"
+              cx="48"
+              cy="48"
+              r="35"
+            ></circle>
+            <path class="success-check-path" d="M31 49.5 43 61l23-28"></path>
+          </svg>
+        </div>
+        <div class="success-copy">
+          <p class="success-eyebrow">
+            {{ formMode === "edit" ? "Asset updated" : "Asset registered" }}
+          </p>
+          <h2>Machine Registered Successfully</h2>
+          <p class="text-th-muted">
+            The machine is ready for monitoring, fault logging and priority
+            calculations.
+          </p>
+        </div>
+        <div class="success-summary !grid-cols-2">
+          <div class="success-summary-item">
+            <span>Machine ID</span
+            ><strong>{{ registeredMachine?.machineId }}</strong>
+          </div>
+          <div class="success-summary-item">
+            <span>Machine Name</span
+            ><strong>{{ registeredMachine?.machineName }}</strong>
+          </div>
+        </div>
+        <div class="success-actions">
+          <button type="button" class="btn-ghost" (click)="viewMachines()">
+            Back to Machine List
+          </button>
+          <button type="button" class="btn-primary" (click)="addAnother()">
+            Register Another Machine
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </section>
+
+  <div
+    *ngIf="editModalOpen"
+    class="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 px-4 backdrop-blur-md"
+  >
+    <div
+      class="w-full max-w-3xl rounded-3xl border border-th-border bg-th-bg2 p-6 shadow-2xl animate-fade-in-up"
+    >
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p class="enterprise-card-label">Edit mode</p>
+          <h2 class="enterprise-panel-title">Update Machine Intelligence</h2>
+          <p class="text-sm text-th-muted">
+            {{ selectedMachine?.machineId }} -
+            {{ selectedMachine?.machineName }}
+          </p>
+        </div>
+        <button
+          type="button"
+          class="enterprise-btn-secondary"
+          (click)="closeEditModal()"
+        >
+          Close
+        </button>
+      </div>
+
+      <form
+        [formGroup]="machineForm"
+        (ngSubmit)="onSubmit()"
+        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+      >
+        <label class="field">
+          <span class="field-label">Machine Status</span>
+          <select formControlName="status" class="input machine-select !pl-4">
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Supported Fault Types</span>
+          <input
+            formControlName="faultType"
+            class="input !pl-4"
+            placeholder="Overheating, Hydraulic Failure"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Production Criticality</span>
+          <select
+            formControlName="productionCriticality"
+            class="input machine-select !pl-4"
+          >
+            <option *ngFor="let option of criticalityOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+        </label>
+        <label
+          class="flex items-center justify-between rounded-2xl border border-th-border bg-th-bg3 px-4 py-3"
+        >
+          <span class="font-black">Bottleneck Status</span>
+          <input
+            type="checkbox"
+            formControlName="productionBottleneck"
+            class="h-5 w-5 accent-cyan-400"
+          />
+        </label>
+        <div
+          class="md:col-span-2 rounded-2xl border border-th-border bg-th-bg3 p-4"
+        >
+          <div class="mb-4 flex items-center justify-between">
+            <span class="field-label m-0"
+              >Current Load: {{ currentLoad }}%</span
+            >
+            <span
+              class="rounded-full bg-gradient-to-r px-3 py-1 text-xs font-black shadow-lg"
+              [ngClass]="loadColorClass"
+              >{{ loadLabel }}</span
+            >
+          </div>
+          <input
+            formControlName="currentOperationalLoad"
+            type="range"
+            min="0"
+            max="100"
+            class="machine-load-slider w-full"
+            [style.background]="sliderGradient"
+          />
+        </div>
+        <label class="field">
+          <span class="field-label">Expected MTBF</span>
+          <input
+            formControlName="expectedMtbf"
+            type="number"
+            min="1"
+            class="input !pl-4"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Expected MTTR</span>
+          <input
+            formControlName="expectedMttr"
+            type="number"
+            min="1"
+            class="input !pl-4"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Purchase Date</span>
+          <input
+            formControlName="purchaseDate"
+            type="date"
+            class="input !pl-4"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Warranty Expiry</span>
+          <input
+            formControlName="warrantyExpiryDate"
+            type="date"
+            class="input !pl-4"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Last Service</span>
+          <input
+            formControlName="lastServiceDate"
+            type="date"
+            class="input !pl-4"
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Next Service Due</span>
+          <input
+            formControlName="nextServiceDueDate"
+            type="date"
+            class="input !pl-4"
+          />
+        </label>
+        <div class="md:col-span-2 flex justify-end gap-3">
+          <button
+            type="button"
+            class="enterprise-btn-secondary"
+            (click)="closeEditModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="enterprise-btn"
+            [disabled]="machineForm.invalid || isSubmitting"
+          >
+            {{ isSubmitting ? "Updating..." : "Update Machine" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

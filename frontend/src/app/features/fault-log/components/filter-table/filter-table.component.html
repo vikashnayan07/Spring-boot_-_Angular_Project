@@ -1,0 +1,193 @@
+<div class="glass-card table-wrapper">
+  <!-- ===================================== -->
+  <!-- LOADING SKELETON                      -->
+  <!-- ===================================== -->
+  <div *ngIf="isLoading" class="skeleton-wrapper">
+    <div class="skeleton-row" *ngFor="let i of [1, 2, 3, 4, 5, 6, 7, 8]">
+      <div class="skeleton-cell skeleton-sm"></div>
+      <div class="skeleton-cell skeleton-sm"></div>
+      <div class="skeleton-cell skeleton-lg"></div>
+      <div class="skeleton-cell skeleton-badge"></div>
+      <div class="skeleton-cell skeleton-sm"></div>
+      <div class="skeleton-cell skeleton-sm"></div>
+      <div class="skeleton-cell skeleton-avatar"></div>
+    </div>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- TABLE                                 -->
+  <!-- ===================================== -->
+  <div *ngIf="!isLoading" class="table-scroll-container">
+    <table class="data-table">
+      <!-- Table Head -->
+      <thead>
+        <tr class="bg-th-bg3">
+          <th class="text-th-text2 font-heading" (click)="sortBy('faultId')">Fault ID</th>
+          <th class="text-th-text2 font-heading" (click)="sortBy('machineId')">Machine</th>
+          <th class="text-th-text2 font-heading">Description</th>
+          <th class="text-th-text2 font-heading" (click)="sortBy('severity')">Severity</th>
+          <th class="text-th-text2 font-heading" (click)="sortBy('faultDate')">Date</th>
+          <th class="text-th-text2 font-heading">Time</th>
+          <th class="text-th-text2 font-heading">Reported By</th>
+        </tr>
+      </thead>
+
+      <!-- Table Body -->
+      <tbody>
+        <tr
+          *ngFor="let fault of paginatedData; let i = index"
+          class="table-row border-b border-th-border"
+          [class.row-even]="i % 2 === 0"
+          [class.engineer-raised-row]="isEngineerRaised(fault)"
+        >
+          <!-- Fault ID -->
+          <td>
+            <span class="fault-id font-data">
+              {{ fault.faultId }}
+            </span>
+            <span *ngIf="isEngineerRaised(fault)" class="engineer-raised-badge">
+              ENGINEER RAISED
+            </span>
+          </td>
+
+          <!-- Machine -->
+          <td class="text-th-text font-medium">
+            {{ fault.machineId }}
+          </td>
+
+          <!-- Description -->
+          <td>
+            <span class="description-cell text-th-text2">
+              {{ fault.description }}
+            </span>
+          </td>
+
+          <!-- Severity Badge -->
+          <td>
+            <span
+              class="severity-badge"
+              [ngClass]="getSeverityClass(fault.severity)"
+            >
+              {{ fault.severity }}
+            </span>
+          </td>
+
+          <!-- Date -->
+          <td class="text-th-text2 font-data text-sm">
+            {{ fault.faultDate }}
+          </td>
+
+          <!-- Time -->
+          <td class="text-th-text2 font-data text-sm">
+            {{ fault.faultTime }}
+          </td>
+
+          <!-- Reported By -->
+          <td>
+            <div class="reporter-cell">
+              <div class="reporter-avatar">
+                {{ fault.reportedByName?.charAt(0) }}
+              </div>
+              <span class="text-th-text text-sm font-medium">
+                {{ fault.reportedByName }}
+              </span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="paginatedData.length === 0" class="empty-state">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="empty-icon text-th-muted"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <p class="text-th-muted text-sm mt-3">
+        No fault records found matching your search.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- PAGINATION                            -->
+  <!-- ===================================== -->
+  <div *ngIf="!isLoading && paginatedData.length > 0" class="pagination-bar">
+    <!-- Info -->
+    <div class="pagination-info text-th-muted text-sm">
+      Showing
+      <span class="text-th-text font-data font-semibold">{{
+        pageInfo.start
+      }}</span>
+      -
+      <span class="text-th-text font-data font-semibold">{{
+        pageInfo.end
+      }}</span>
+      of
+      <span class="text-th-text font-data font-semibold">{{
+        pageInfo.total
+      }}</span>
+      results
+    </div>
+
+    <!-- Page Size -->
+    <div class="page-size">
+      <span class="text-xs text-th-muted">Rows</span>
+      <select
+        class="page-size-select bg-th-bg3 border-th-border text-th-text2"
+        [value]="itemsPerPage"
+        (change)="onPageSizeSelect($event)"
+      >
+        <option *ngFor="let size of pageSizeOptions" [value]="size">
+          {{ size }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Controls -->
+    <div class="pagination-controls">
+      <!-- Previous -->
+      <button
+        class="page-btn page-nav text-th-text2"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+      >
+        Prev
+      </button>
+
+      <!-- Page Numbers -->
+      <ng-container *ngFor="let page of visiblePages; trackBy: trackPage">
+        <span *ngIf="page === '...'" class="page-ellipsis">...</span>
+        <button
+          *ngIf="page !== '...'"
+          class="page-btn"
+          [ngClass]="
+            page === currentPage ? 'page-active' : 'page-inactive text-th-text2'
+          "
+          (click)="onPageClick(page)"
+        >
+          {{ page }}
+        </button>
+      </ng-container>
+
+      <!-- Next -->
+      <button
+        class="page-btn page-nav text-th-text2"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,657 @@
+<section class="enterprise-page animate-fade-in-up">
+  <header class="enterprise-page-header">
+    <div>
+      <button type="button" class="back-btn mb-3" (click)="goBack()">
+        <span aria-hidden="true">←</span>
+        <span>{{ backLabel }}</span>
+      </button>
+      <p class="enterprise-page-eyebrow">Maintenance operations</p>
+      <h1 class="enterprise-page-title gradient-text">
+        Maintenance Command Center
+      </h1>
+      <p class="enterprise-page-copy">
+        Coordinate system-generated alerts, engineer assignments, work orders
+        and repair history.
+      </p>
+    </div>
+
+    <div class="enterprise-toolbar">
+      <span class="enterprise-status">
+        <span class="enterprise-status-dot"></span>
+        Work order flow live
+      </span>
+      <button
+        type="button"
+        class="enterprise-btn-secondary"
+        (click)="loadCommandCenter()"
+        [disabled]="loading"
+      >
+        <span [ngClass]="{ 'animate-spin': loading }">SYNC</span>
+        <span>{{ loading ? "Syncing" : "Refresh" }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="enterprise-kpi-grid">
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Open Alerts</p>
+          <div class="enterprise-kpi-value">
+            {{ loading ? "--" : openAlerts }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">AL</span>
+      </div>
+      <p class="enterprise-kpi-meta">
+        System-generated alerts ready for auto assignment
+      </p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Active Work Orders</p>
+          <div class="enterprise-kpi-value">
+            {{ loading ? "--" : activeWorkOrders }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">WO</span>
+      </div>
+      <p class="enterprise-kpi-meta">Maintenance schedules not yet completed</p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">In Progress</p>
+          <div class="enterprise-kpi-value">
+            {{ loading ? "--" : inProgressTasks }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">IP</span>
+      </div>
+      <p class="enterprise-kpi-meta">
+        Engineer tasks currently under execution
+      </p>
+    </article>
+
+    <article class="enterprise-kpi-card">
+      <div class="enterprise-kpi-head">
+        <div>
+          <p class="enterprise-card-label">Completed Repairs</p>
+          <div class="enterprise-kpi-value">
+            {{ loading ? "--" : completedRepairs }}
+          </div>
+        </div>
+        <span class="enterprise-kpi-icon">OK</span>
+      </div>
+      <p class="enterprise-kpi-meta">Closed maintenance records from history</p>
+    </article>
+  </div>
+
+  <section class="enterprise-panel">
+    <div class="maintenance-command-toolbar">
+      <div
+        class="maintenance-tabs"
+        role="tablist"
+        aria-label="Maintenance command center sections"
+      >
+        <button
+          type="button"
+          class="maintenance-tab"
+          [class.active]="activeTab === 'alerts'"
+          (click)="activeTab = 'alerts'"
+        >
+          Alert Auto Assignment
+        </button>
+        <button
+          type="button"
+          class="maintenance-tab"
+          [class.active]="activeTab === 'workOrders'"
+          (click)="activeTab = 'workOrders'"
+        >
+          Work Orders
+        </button>
+        <button
+          type="button"
+          class="maintenance-tab"
+          [class.active]="activeTab === 'schedule'"
+          (click)="activeTab = 'schedule'"
+        >
+          Schedule Board
+        </button>
+        <button
+          type="button"
+          class="maintenance-tab"
+          [class.active]="activeTab === 'history'"
+          (click)="activeTab = 'history'"
+        >
+          History Center
+        </button>
+      </div>
+
+      <div class="maintenance-search">
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          class="input !min-h-[44px] !pl-4"
+          placeholder="Search machine, alert, work order or engineer"
+        />
+        <select [(ngModel)]="statusFilter" class="input !min-h-[44px] !pl-4">
+          <option value="All">All statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="In_progress">In progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="loadError" class="maintenance-alert-banner">
+      {{ loadError }}
+    </div>
+
+    <ng-container *ngIf="!loading; else loadingState">
+      <div *ngIf="activeTab === 'alerts'" class="maintenance-section-grid">
+        <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="enterprise-page-eyebrow">Alert sorting</p>
+            <h2 class="enterprise-panel-title">Open Alerts</h2>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <select
+              [ngModel]="alertSortKey"
+              (ngModelChange)="sortAlertsBy($event)"
+              class="input !min-h-[44px] !pl-4 sm:w-56"
+            >
+              <option value="alertId">Alert ID</option>
+              <option value="machineId">Machine ID</option>
+              <option value="severity">Severity</option>
+              <option value="alertPriority">Priority</option>
+              <option value="alertReason">Reason</option>
+            </select>
+            <button
+              type="button"
+              class="enterprise-btn-secondary"
+              (click)="toggleAlertSortDirection()"
+            >
+              {{ alertSortDirection === 'asc' ? 'Asc' : 'Desc' }}
+            </button>
+          </div>
+        </div>
+        <article
+          *ngFor="let alert of paginatedAlerts"
+          class="maintenance-alert-card"
+          [class.support-escalation-card]="isSupportEscalation(alert)"
+        >
+          <div class="maintenance-card-head">
+            <div>
+              <p class="enterprise-card-label">Machine</p>
+              <h3>{{ alert.machineId || "N/A" }}</h3>
+            </div>
+            <div class="maintenance-alert-badges">
+              <span *ngIf="isSupportEscalation(alert)" class="support-escalation-badge">
+                SUPPORT ESCALATION
+              </span>
+              <span class="maintenance-priority">{{ priorityLabel(alert) }}</span>
+            </div>
+          </div>
+          <p class="maintenance-card-copy">
+            {{
+              alert.alertReason ||
+                alert.issueName ||
+                "Risk engine generated maintenance alert."
+            }}
+          </p>
+          <div class="maintenance-card-meta">
+            <span>Alert #{{ alert.alertId }}</span>
+            <span>{{ alert.severity || "Severity pending" }}</span>
+          </div>
+          <button
+            type="button"
+            class="enterprise-btn"
+            (click)="autoAssign(alert)"
+            [disabled]="assigningAlertId === alert.alertId"
+            *ngIf="isAdmin"
+          >
+            {{
+              assigningAlertId === alert.alertId
+                ? "Assigning..."
+                : "Auto Assign"
+            }}
+          </button>
+        </article>
+
+        <div
+          *ngIf="filteredAlerts.length === 0"
+          class="maintenance-empty-state"
+        >
+          <span class="enterprise-kpi-icon">AL</span>
+          <h3>No open maintenance alerts</h3>
+          <p>System-generated alerts will appear here after risk evaluation.</p>
+        </div>
+        <div class="pagination-bar md:col-span-2 xl:col-span-3" *ngIf="filteredAlerts.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing {{ showingStart(filteredAlerts.length, alertPage) }}-{{
+              showingEnd(filteredAlerts.length, alertPage)
+            }}
+            of {{ filteredAlerts.length }} alerts
+          </span>
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('alerts', alertPage - 1)"
+              [disabled]="alertPage === 1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(alertTotalPages, alertPage)"
+              [disabled]="page === '...'"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === alertPage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              (click)="changePageFromItem('alerts', page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('alerts', alertPage + 1)"
+              [disabled]="alertPage === alertTotalPages"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="activeTab === 'workOrders'"
+        class="overflow-hidden rounded-2xl border border-th-border"
+      >
+        <div class="overflow-x-auto">
+          <table class="data-table min-w-[920px]">
+            <thead>
+              <tr>
+                <th (click)="sortWorkOrdersBy('scheduleId')">Work Order ID</th>
+                <th (click)="sortWorkOrdersBy('machineId')">Machine ID</th>
+                <th (click)="sortWorkOrdersBy('alertId')">Alert ID</th>
+                <th (click)="sortWorkOrdersBy('empId')">Engineer</th>
+                <th (click)="sortWorkOrdersBy('scheduleDate')">Scheduled Date</th>
+                <th (click)="sortWorkOrdersBy('status')">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of paginatedWorkOrders" class="table-row">
+                <td>
+                  <span class="fault-id">WO-{{ item.scheduleId }}</span>
+                </td>
+                <td class="font-black">{{ item.machineId }}</td>
+                <td>{{ item.alertId || "N/A" }}</td>
+                <td>EMP-{{ item.empId || "Unassigned" }}</td>
+                <td>{{ item.scheduleDate }}</td>
+                <td>
+                  <span
+                    class="maintenance-status"
+                    [ngClass]="statusClass(item.status)"
+                    >{{ item.status }}</span
+                  >
+                </td>
+              </tr>
+              <tr *ngIf="filteredSchedules.length === 0">
+                <td colspan="6" class="py-12 text-center text-th-muted">
+                  No maintenance work orders found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" *ngIf="filteredSchedules.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing
+            {{ showingStart(filteredSchedules.length, workOrderPage) }}-{{
+              showingEnd(filteredSchedules.length, workOrderPage)
+            }}
+            of {{ filteredSchedules.length }} work orders
+          </span>
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('workOrders', workOrderPage - 1)"
+              [disabled]="workOrderPage === 1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(workOrderTotalPages, workOrderPage)"
+              [disabled]="page === '...'"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === workOrderPage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              (click)="changePageFromItem('workOrders', page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('workOrders', workOrderPage + 1)"
+              [disabled]="workOrderPage === workOrderTotalPages"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'schedule'" class="schedule-board-grid">
+        <article
+          *ngFor="let item of paginatedActiveSchedules"
+          class="schedule-card"
+        >
+          <div class="schedule-date">
+            <span>{{ item.scheduleDate || "Today" }}</span>
+            <strong>WO-{{ item.scheduleId }}</strong>
+          </div>
+          <span>
+            <span class="enterprise-action-title"
+              >WO-{{ item.scheduleId }} · {{ item.machineId }}</span
+            >
+            <span class="enterprise-action-copy">
+              EMP-{{ item.empId || "Unassigned" }} · {{ item.scheduleDate }} ·
+              {{ item.status }}
+            </span>
+          </span>
+          <span
+            class="maintenance-status"
+            [ngClass]="statusClass(item.status)"
+            >{{ item.status }}</span
+          >
+        </article>
+
+        <div
+          *ngIf="activeSchedules.length === 0"
+          class="maintenance-empty-state"
+        >
+          <span class="enterprise-kpi-icon">SC</span>
+          <h3>No active scheduled maintenance</h3>
+          <p>
+            Pending and in-progress work orders will appear here. Completed work
+            belongs in History Center.
+          </p>
+        </div>
+        <div class="pagination-bar md:col-span-2 xl:col-span-3" *ngIf="activeSchedules.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing {{ showingStart(activeSchedules.length, schedulePage) }}-{{
+              showingEnd(activeSchedules.length, schedulePage)
+            }}
+            of {{ activeSchedules.length }} active schedules
+          </span>
+          <div class="pagination-controls">
+            <button type="button" class="page-btn" (click)="changePage('schedule', schedulePage - 1)" [disabled]="schedulePage === 1">Prev</button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(scheduleTotalPages, schedulePage)"
+              [disabled]="page === '...'"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === schedulePage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              (click)="changePageFromItem('schedule', page)"
+            >
+              {{ page }}
+            </button>
+            <button type="button" class="page-btn" (click)="changePage('schedule', schedulePage + 1)" [disabled]="schedulePage === scheduleTotalPages">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="activeTab === 'history'"
+        class="overflow-hidden rounded-2xl border border-th-border"
+      >
+        <div class="overflow-x-auto">
+          <table class="data-table min-w-[960px]">
+            <thead>
+              <tr>
+                <th (click)="sortHistoryBy('historyId')">History ID</th>
+                <th (click)="sortHistoryBy('scheduleId')">Work Order</th>
+                <th (click)="sortHistoryBy('machineId')">Machine</th>
+                <th (click)="sortHistoryBy('empId')">Engineer</th>
+                <th (click)="sortHistoryBy('status')">Status</th>
+                <th (click)="sortHistoryBy('resolvedDate')">Resolved</th>
+                <th (click)="sortHistoryBy('lastUpdated')">Last Updated</th>
+                <th>Remarks</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of paginatedHistory" class="table-row">
+                <td>
+                  <span class="fault-id">H-{{ item.historyId }}</span>
+                </td>
+                <td>WO-{{ item.scheduleId }}</td>
+                <td class="font-black">{{ item.machineId }}</td>
+                <td>EMP-{{ item.empId }}</td>
+                <td>
+                  <span
+                    class="maintenance-status"
+                    [ngClass]="statusClass(item.status)"
+                    >{{ item.status }}</span
+                  >
+                </td>
+                <td>
+                  {{ formatTimestamp(item.resolvedDate, item.resolvedTime) }}
+                </td>
+                <td>
+                  {{
+                    item.lastUpdated
+                      ? (item.lastUpdated | date: "yyyy-MM-dd HH:mm:ss")
+                      : "—"
+                  }}
+                </td>
+                <td class="max-w-[300px] truncate">
+                  {{ item.remarks || "No repair notes recorded" }}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="enterprise-btn-secondary"
+                    (click)="openHistoryDetail(item)"
+                  >
+                    Details
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredHistory.length === 0">
+                <td colspan="9" class="py-12 text-center text-th-muted">
+                  No maintenance history records found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" *ngIf="filteredHistory.length > 0">
+          <span class="text-sm font-bold text-th-muted">
+            Showing {{ showingStart(filteredHistory.length, historyPage) }}-{{
+              showingEnd(filteredHistory.length, historyPage)
+            }}
+            of {{ filteredHistory.length }} history records
+          </span>
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('history', historyPage - 1)"
+              [disabled]="historyPage === 1"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              *ngFor="let page of pages(historyTotalPages, historyPage)"
+              [disabled]="page === '...'"
+              [ngClass]="
+                page === '...'
+                  ? 'page-inactive'
+                  : page === historyPage
+                    ? 'page-active'
+                    : 'page-inactive'
+              "
+              (click)="changePageFromItem('history', page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              type="button"
+              class="page-btn"
+              (click)="changePage('history', historyPage + 1)"
+              [disabled]="historyPage === historyTotalPages"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #loadingState>
+      <div class="skeleton-wrapper">
+        <div class="skeleton-row" *ngFor="let row of [1, 2, 3, 4, 5]">
+          <span
+            class="skeleton-cell"
+            *ngFor="let cell of [1, 2, 3, 4, 5, 6]"
+          ></span>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+
+  <div
+    *ngIf="selectedHistory"
+    class="maintenance-drawer-backdrop"
+    (click)="closeHistoryDetail()"
+  >
+    <aside class="maintenance-drawer" (click)="$event.stopPropagation()">
+      <div class="maintenance-card-head">
+        <div>
+          <p class="enterprise-page-eyebrow">Maintenance timeline</p>
+          <h2 class="enterprise-panel-title">
+            H-{{ selectedHistory.historyId }}
+          </h2>
+          <button
+            type="button"
+            class="back-btn mt-3"
+            (click)="closeHistoryDetail()"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Back to History</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="enterprise-icon-button"
+          (click)="closeHistoryDetail()"
+        >
+          X
+        </button>
+      </div>
+      <div class="maintenance-timeline">
+        <div class="timeline-item">
+          <span></span>
+          <div>
+            <strong>Work order created</strong>
+            <p>
+              WO-{{ selectedHistory.scheduleId }} linked to alert
+              {{ selectedHistory.alertId || "N/A" }}
+            </p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <span></span>
+          <div>
+            <strong>Engineer assigned</strong>
+            <p>
+              EMP-{{ selectedHistory.empId }} handled machine
+              {{ selectedHistory.machineId }}
+            </p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <span></span>
+          <div>
+            <strong>Status update</strong>
+            <p>
+              {{ selectedHistory.status }} on
+              {{
+                formatTimestamp(
+                  selectedHistory.resolvedDate,
+                  selectedHistory.resolvedTime
+                )
+              }}
+            </p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <span></span>
+          <div>
+            <strong>Repair notes</strong>
+            <p>{{ selectedHistory.remarks || "No repair notes recorded" }}</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <span></span>
+          <div>
+            <strong>Last updated</strong>
+            <p>
+              {{
+                selectedHistory.lastUpdated
+                  ? (selectedHistory.lastUpdated | date: "yyyy-MM-dd HH:mm:ss")
+                  : "—"
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div
+    *ngIf="pendingAssignAlert"
+    class="engineer-modal-backdrop"
+    (click)="cancelAutoAssign()"
+  >
+    <section class="enterprise-confirm-card" (click)="$event.stopPropagation()">
+      <p class="enterprise-page-eyebrow">Confirm auto assignment</p>
+      <h2>Create work order?</h2>
+      <p>
+        Alert #{{ pendingAssignAlert.alertId }} will be assigned using the existing least-load workflow.
+      </p>
+      <div class="engineer-modal-actions">
+        <button type="button" class="enterprise-btn-secondary" (click)="cancelAutoAssign()">Cancel</button>
+        <button type="button" class="enterprise-btn" (click)="confirmAutoAssign()">Auto Assign</button>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,99 @@
+<section class="enterprise-page">
+  <header class="enterprise-page-header">
+    <div>
+      <p class="enterprise-page-eyebrow">Admin import workflow</p>
+      <h1 class="enterprise-page-title">Import <span class="gradient-text">Fault Logs</span></h1>
+      <p class="enterprise-page-copy">
+        Upload validated CSV fault records into the MachCare fault log pipeline.
+      </p>
+    </div>
+
+    <a routerLink="/admin/fault-logs" class="enterprise-btn-secondary">Back to Fault Logs</a>
+  </header>
+
+  <div class="enterprise-grid-2 import-layout">
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">CSV upload</h2>
+
+      <label
+        class="upload-dropzone"
+        [class.dragging]="isDragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+      >
+        <input type="file" accept=".csv,text/csv" class="sr-only" (change)="onFileSelected($event)" />
+        <span class="upload-icon">CSV</span>
+        <span class="upload-title">Drop CSV here or browse files</span>
+        <span class="upload-copy">Accepted format: .csv only. Empty and malformed files are blocked before upload.</span>
+      </label>
+
+      <div *ngIf="selectedFile" class="file-summary">
+        <div>
+          <p class="font-bold text-th-text">{{ selectedFile.name }}</p>
+          <p class="text-sm text-th-muted">{{ recordCount }} records ready for upload</p>
+        </div>
+        <button type="button" class="enterprise-btn-secondary" (click)="clearFile()" [disabled]="isUploading">
+          Clear
+        </button>
+      </div>
+
+      <p *ngIf="validationError" class="import-error">{{ validationError }}</p>
+
+      <div *ngIf="isUploading" class="mt-5">
+        <div class="flex justify-between text-sm font-bold text-th-text2">
+          <span>Uploading</span>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+        <div class="enterprise-progress mt-2">
+          <span [style.width.%]="uploadProgress"></span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="enterprise-btn mt-6 w-full"
+        [disabled]="!selectedFile || !!validationError || isUploading"
+        (click)="upload()"
+      >
+        {{ isUploading ? 'Importing Fault Logs' : 'Import Fault Logs' }}
+      </button>
+    </section>
+
+    <section class="enterprise-panel">
+      <h2 class="enterprise-panel-title">Template helper</h2>
+      <p class="text-sm leading-6 text-th-muted">
+        Keep the CSV header consistent with backend parsing. Recommended columns:
+      </p>
+      <div class="template-line mt-4 font-data">
+        faultId,machineId,description,severity,faultDate,faultTime
+      </div>
+
+      <div class="preview-box mt-6">
+        <div class="flex items-center justify-between border-b border-th-border p-4">
+          <h3 class="font-heading font-bold text-th-text">Preview</h3>
+          <span class="enterprise-status"><span class="enterprise-status-dot"></span>{{ recordCount }} records</span>
+        </div>
+        <div class="overflow-auto">
+          <table class="data-table min-w-[680px]" *ngIf="previewRows.length; else emptyPreview">
+            <thead>
+              <tr>
+                <th *ngFor="let header of headers">{{ header }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of previewRows.slice(0, 6)">
+                <td *ngFor="let cell of row">{{ cell }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #emptyPreview>
+            <div class="p-8 text-center text-sm text-th-muted">
+              Select a valid CSV file to preview records before import.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>

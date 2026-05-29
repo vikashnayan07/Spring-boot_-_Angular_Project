@@ -1,0 +1,492 @@
+<main
+  class="login-stage relative flex min-h-screen flex-col overflow-hidden bg-[#0F172A] text-white"
+  [style.--glow-x.%]="glowX"
+  [style.--glow-y.%]="glowY"
+  (mousemove)="onPointerMove($event)"
+  @pageIntro
+>
+  <div class="pointer-events-none absolute inset-0">
+    <div
+      class="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.08)_1px,transparent_1px)] bg-[size:64px_64px] opacity-60"
+    ></div>
+    <div
+      class="login-scanline absolute inset-x-0 top-0 h-px bg-cyan-300/70"
+    ></div>
+    <div
+      class="login-glow absolute h-[34rem] w-[34rem] rounded-full bg-cyan-400/20 blur-3xl"
+    ></div>
+    <div
+      class="absolute -left-32 top-24 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl"
+    ></div>
+    <div
+      class="absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-orange-500/15 blur-3xl"
+    ></div>
+
+    <div class="particle particle-a"></div>
+    <div class="particle particle-b"></div>
+    <div class="particle particle-c"></div>
+    <div class="particle particle-d"></div>
+  </div>
+
+  <header
+    class="motion-item relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 lg:px-8"
+  >
+    <button
+      type="button"
+      (click)="goBack()"
+      class="login-pill group inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 text-sm font-semibold text-slate-200 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-white/12 focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
+    >
+      <svg
+        class="h-4 w-4 transition group-hover:-translate-x-0.5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M15 18l-6-6 6-6"
+        />
+      </svg>
+      Back
+    </button>
+
+    <button
+      type="button"
+      (click)="toggleTheme()"
+      class="login-pill inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 text-sm font-semibold text-slate-200 shadow-2xl shadow-black/20 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-white/12 focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
+      [attr.aria-label]="
+        isDark ? 'Switch to light mode' : 'Switch to dark mode'
+      "
+    >
+      <span
+        class="h-2.5 w-2.5 rounded-full"
+        [ngClass]="isDark ? 'bg-amber-300' : 'bg-cyan-300'"
+      ></span>
+      {{ isDark ? "Light mode" : "Dark mode" }}
+    </button>
+  </header>
+
+  <section
+    class="relative z-10 flex flex-1 items-center justify-center px-5 pb-8 lg:px-8"
+  >
+    <div
+      class="motion-item login-card grid w-full max-w-6xl grid-cols-1 overflow-hidden rounded-[2rem] border border-white/15 bg-white/10 p-2 shadow-[0_30px_110px_rgba(0,0,0,0.55)] backdrop-blur-2xl lg:grid-cols-[1.08fr_0.92fr]"
+    >
+      <div
+        class="hello-panel relative min-h-[430px] overflow-hidden rounded-[1.65rem] border border-cyan-300/15 bg-[#07111f] p-6 sm:p-8 lg:min-h-[650px]"
+      >
+        <div
+          class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.18),transparent_30%),radial-gradient(circle_at_80%_65%,rgba(249,115,22,0.16),transparent_32%)]"
+        ></div>
+
+        <div class="relative z-20 max-w-xl">
+          <div
+            class="mb-6 inline-flex items-center gap-3 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-cyan-100 shadow-[0_0_40px_rgba(34,211,238,0.15)] backdrop-blur-xl"
+          >
+            <span
+              class="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]"
+            ></span>
+            Secure industrial access
+          </div>
+
+          <h1
+            class="font-heading text-4xl font-black leading-[1.02] tracking-normal text-white sm:text-5xl"
+          >
+            {{ loginGreeting }},
+            <span
+              class="block bg-gradient-to-r from-cyan-200 via-blue-400 to-orange-300 bg-clip-text text-transparent"
+            >
+              welcome to MachCare.
+            </span>
+          </h1>
+
+          <p
+            class="mt-5 max-w-lg text-sm leading-7 text-slate-300 sm:text-base"
+          >
+            {{ loginSubtitle }}
+          </p>
+        </div>
+
+        <div class="relative z-10 mt-8 hidden lg:block">
+          <svg
+            class="industrial-svg h-[360px] w-full"
+            viewBox="0 0 640 360"
+            aria-label="Industrial machine monitoring illustration"
+          >
+            <defs>
+              <linearGradient id="metal" x1="0" x2="1">
+                <stop offset="0" stop-color="#64748b" />
+                <stop offset="0.55" stop-color="#cbd5e1" />
+                <stop offset="1" stop-color="#334155" />
+              </linearGradient>
+              <linearGradient id="cyanLine" x1="0" x2="1">
+                <stop offset="0" stop-color="#22D3EE" stop-opacity="0" />
+                <stop offset="0.5" stop-color="#22D3EE" />
+                <stop offset="1" stop-color="#2563EB" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <g class="truck">
+              <path
+                d="M54 250h250l34-78h90l67 78h55v44H54z"
+                fill="url(#metal)"
+                opacity="0.88"
+              />
+              <path d="M82 168h208l-28 66H62z" fill="#1d4ed8" opacity="0.7" />
+              <path
+                d="M349 184h66l48 54H326z"
+                fill="#0f172a"
+                stroke="#22D3EE"
+                stroke-opacity="0.5"
+              />
+              <circle
+                cx="142"
+                cy="300"
+                r="34"
+                fill="#020617"
+                stroke="#94a3b8"
+                stroke-width="10"
+              />
+              <circle
+                cx="432"
+                cy="300"
+                r="34"
+                fill="#020617"
+                stroke="#94a3b8"
+                stroke-width="10"
+              />
+              <path
+                d="M96 158l-32-38h130l46 38z"
+                fill="#F97316"
+                opacity="0.85"
+              />
+            </g>
+
+            <g class="robot-arm" transform="translate(430 48)">
+              <circle
+                cx="44"
+                cy="214"
+                r="26"
+                fill="#0f172a"
+                stroke="#22D3EE"
+                stroke-width="4"
+              />
+              <path
+                d="M44 188V90"
+                stroke="#94a3b8"
+                stroke-width="20"
+                stroke-linecap="round"
+              />
+              <path
+                d="M44 92l82-46"
+                stroke="#cbd5e1"
+                stroke-width="18"
+                stroke-linecap="round"
+              />
+              <path
+                d="M124 46l62 40"
+                stroke="#64748b"
+                stroke-width="15"
+                stroke-linecap="round"
+              />
+              <circle cx="44" cy="90" r="18" fill="#1d4ed8" stroke="#22D3EE" />
+              <circle cx="124" cy="46" r="15" fill="#1d4ed8" stroke="#22D3EE" />
+              <path
+                d="M188 86l18 24m-18-24l28-2"
+                stroke="#F97316"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </g>
+
+            <g class="data-lines">
+              <path
+                d="M30 72h156l36 35h112"
+                stroke="url(#cyanLine)"
+                stroke-width="3"
+                fill="none"
+              />
+              <path
+                d="M120 52h132l32 26h94"
+                stroke="url(#cyanLine)"
+                stroke-width="2"
+                fill="none"
+                opacity="0.75"
+              />
+              <path
+                d="M70 118h86l22 22h90"
+                stroke="url(#cyanLine)"
+                stroke-width="2"
+                fill="none"
+                opacity="0.65"
+              />
+            </g>
+          </svg>
+        </div>
+
+        <div
+          class="holo-panel absolute bottom-6 left-6 z-20 w-[calc(100%-3rem)] rounded-2xl border border-cyan-300/20 bg-slate-950/65 p-4 backdrop-blur-xl sm:w-60"
+        >
+          <p
+            class="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200"
+          >
+            Asset health
+          </p>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+            <div
+              class="h-full w-[82%] rounded-full bg-gradient-to-r from-cyan-300 to-blue-500"
+            ></div>
+          </div>
+          <p class="mt-3 text-3xl font-black text-white">82.4%</p>
+        </div>
+      </div>
+
+      <div
+        class="form-panel flex items-center justify-center rounded-[1.65rem] border border-white/10 bg-slate-950/70 p-6 sm:p-8 lg:rounded-l-none"
+      >
+        <div class="w-full max-w-md">
+          <div class="mb-8">
+            <div
+              class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.35)]"
+            >
+              <span class="font-heading text-lg font-black text-white">M</span>
+            </div>
+            <p
+              class="text-xs font-black uppercase tracking-[0.28em] text-cyan-200"
+            >
+              Secure operations login
+            </p>
+            <h2
+              class="mt-3 font-heading text-3xl font-black tracking-normal text-white sm:text-4xl"
+            >
+              Sign in
+            </h2>
+            <p class="mt-3 text-sm leading-6 text-slate-400">
+              Enter your credentials to continue into the MachCare command
+              center.
+            </p>
+          </div>
+
+          <form
+            [formGroup]="loginForm"
+            (ngSubmit)="onLogin()"
+            class="space-y-5"
+            novalidate
+          >
+            <div>
+              <label
+                for="email"
+                class="mb-2 block text-sm font-bold text-slate-200"
+                >Email address</label
+              >
+              <div
+                class="input-shell group relative rounded-2xl border bg-white/5 transition duration-300 focus-within:-translate-y-0.5 focus-within:border-cyan-300/70 focus-within:bg-white/8 focus-within:shadow-[0_0_35px_rgba(34,211,238,0.18)]"
+                [ngClass]="
+                  f['email'].invalid && (f['email'].dirty || f['email'].touched)
+                    ? 'border-red-400/60'
+                    : 'border-white/10'
+                "
+              >
+                <svg
+                  class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 transition group-focus-within:text-cyan-300"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4 6h16v12H4z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4 7l8 6 8-6"
+                  />
+                </svg>
+                <input
+                  id="email"
+                  formControlName="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="operator@machcare.com"
+                  class="h-14 w-full rounded-2xl bg-transparent pl-12 pr-4 text-sm font-semibold text-white outline-none placeholder:text-slate-600"
+                />
+              </div>
+              <p
+                *ngIf="
+                  f['email'].invalid && (f['email'].dirty || f['email'].touched)
+                "
+                class="mt-2 text-xs font-bold text-red-300"
+              >
+                Enter a valid email address.
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="password"
+                class="mb-2 block text-sm font-bold text-slate-200"
+                >Password</label
+              >
+              <div
+                class="input-shell group relative rounded-2xl border bg-white/5 transition duration-300 focus-within:-translate-y-0.5 focus-within:border-cyan-300/70 focus-within:bg-white/8 focus-within:shadow-[0_0_35px_rgba(34,211,238,0.18)]"
+                [ngClass]="
+                  f['password'].invalid &&
+                  (f['password'].dirty || f['password'].touched)
+                    ? 'border-red-400/60'
+                    : 'border-white/10'
+                "
+              >
+                <svg
+                  class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 transition group-focus-within:text-cyan-300"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M7 11V8a5 5 0 0110 0v3"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 11h14v9H5z"
+                  />
+                </svg>
+                <input
+                  id="password"
+                  formControlName="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  placeholder="Enter secure password"
+                  class="h-14 w-full rounded-2xl bg-transparent pl-12 pr-14 text-sm font-semibold text-white outline-none placeholder:text-slate-600"
+                />
+                <button
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  class="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
+                  [attr.aria-label]="
+                    showPassword ? 'Hide password' : 'Show password'
+                  "
+                >
+                  <svg
+                    *ngIf="!showPassword"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    *ngIf="showPassword"
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 3l18 18"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M10.6 10.6a2 2 0 002.8 2.8"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9.9 4.4A10.8 10.8 0 0112 4c6.5 0 10 8 10 8a18.8 18.8 0 01-3.1 4.1M6.6 6.7C3.7 8.7 2 12 2 12s3.5 8 10 8a10.8 10.8 0 004.1-.8"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <p
+                *ngIf="
+                  f['password'].invalid &&
+                  (f['password'].dirty || f['password'].touched)
+                "
+                class="mt-2 text-xs font-bold text-red-300"
+              >
+                Password is required.
+              </p>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <label
+                class="group flex cursor-pointer items-center gap-3 text-sm font-semibold text-slate-300"
+              >
+                <input
+                  formControlName="remember"
+                  type="checkbox"
+                  class="peer sr-only"
+                />
+                <span
+                  class="flex h-5 w-5 items-center justify-center rounded-md border border-white/15 bg-white/5 transition peer-checked:border-cyan-300 peer-checked:bg-cyan-300"
+                >
+                  <svg
+                    class="h-3.5 w-3.5 scale-0 text-slate-950 transition peer-checked:scale-100"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 011.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </span>
+                Remember me
+              </label>
+
+              <a
+                routerLink="/forgot-password"
+                class="text-sm font-bold text-cyan-200 transition hover:text-white hover:underline"
+              >
+                Forgot password?
+              </a>
+            </div>
+
+            <p class="min-h-5 text-sm font-semibold text-red-300">
+              {{ errorMsg }}
+            </p>
+
+            <button
+              type="submit"
+              [disabled]="isLoading || loginForm.invalid"
+              class="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-orange-400 px-6 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_0_45px_rgba(34,211,238,0.22)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_70px_rgba(34,211,238,0.34)] focus:outline-none focus:ring-2 focus:ring-cyan-200/80 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            >
+              <span
+                class="absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition duration-700 group-hover:translate-x-[120%]"
+              ></span>
+              <span *ngIf="!isLoading" class="relative"
+                >Enter command center</span
+              >
+              <span *ngIf="isLoading" class="relative flex items-center gap-3">
+                <span
+                  class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                ></span>
+                Authenticating
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
