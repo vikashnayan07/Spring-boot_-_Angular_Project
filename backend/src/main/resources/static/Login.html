@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login | MachCare</title>
+
+<style>
+/* =========================
+   THEME VARIABLES
+========================= */
+:root {
+  --accent:#00a8cc;
+  --accent-2:#5b8cff;
+  --bg-gradient:linear-gradient(120deg,#e2e8f0,#cbd5e1);
+  --card:rgba(255,255,255,0.95);
+  --text:#0f172a;          
+  --muted:#475569;         
+  --border:#cbd5e1;
+  --gear:#64748b;
+}
+
+[data-theme="dark"] {
+  --bg-gradient:linear-gradient(120deg,#020617,#020617);
+  --card:rgba(2,6,23,0.95);
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --border:#1e293b;
+  --gear:#334155;
+}
+
+/* =========================
+   RESET & BASE STYLES
+========================= */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Inter, Segoe UI, sans-serif;
+  min-height:100vh;
+  background:var(--bg-gradient);
+  color:var(--text);
+  transition:background .3s, color .3s;
+}
+
+/* =========================
+   COMPONENTS
+========================= */
+.theme-toggle{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  color:var(--text);
+  font-size:14px;
+  backdrop-filter:blur(10px);
+  z-index:10;
+}
+
+.back-btn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  background:linear-gradient(135deg,#2563eb,#0ea5e9);
+  color:#fff;
+  border:none;
+  padding:8px 18px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:600;
+  box-shadow:0 10px 24px rgba(56,189,248,.45);
+  z-index:10;
+}
+
+/* =========================
+   ANIMATED BACKGROUND
+========================= */
+.factory-bg{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+}
+
+.conveyor{
+  position:absolute;
+  left:-20%;
+  right:-20%;
+  height:60px;
+  opacity:.25;
+  background: repeating-linear-gradient(90deg, var(--gear) 0 40px, #475569 40px 80px);
+  animation:move 8s linear infinite;
+}
+.conveyor.top{top:20%}
+.conveyor.bottom{top:65%; animation-duration:10s}
+
+@keyframes move{ to{background-position:320px 0} }
+
+.gear{
+  position:absolute;
+  width:180px;
+  height:180px;
+  opacity:.25;
+  animation:spin 18s linear infinite;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+/* =========================
+   LAYOUT & CARD
+========================= */
+.wrapper{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:24px;
+}
+
+.login-card{
+  width:960px;
+  max-width:100%;
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  background:var(--card);
+  border-radius:20px;
+  border:1px solid var(--border);
+  backdrop-filter:blur(14px);
+  box-shadow:0 30px 80px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+
+.visual{ padding:40px; }
+.visual h1{ font-size:34px; margin-bottom:6px; }
+
+.form-panel{ padding:40px; }
+.form-panel h2{ font-size:24px; margin-bottom:6px; }
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  margin-bottom:16px;
+  outline: none;
+}
+
+.login-btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  color:white;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+}
+
+@media(max-width:900px){
+  .login-card{ grid-template-columns:1fr; }
+  .visual{ display:none; }
+}
+</style>
+</head>
+
+<body>
+
+<button class="back-btn" onclick="goBack()">⬅ Back</button>
+<button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+
+<div class="factory-bg">
+  <div class="conveyor top"></div>
+  <div class="conveyor bottom"></div>
+  <svg class="gear" style="top:30%; left:5%" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="44" stroke="var(--gear)" stroke-width="12" fill="none"/>
+  </svg>
+</div>
+
+<div class="wrapper">
+  <div class="login-card">
+
+    <div class="visual">
+      <h1>MachCare</h1>
+      <p style="color:var(--muted); margin-bottom:20px;">
+        Intelligent industrial monitoring platform that keeps
+        machines, lines, and production systems running smoothly.
+      </p>
+
+      <div class="machine-img">
+        <svg viewBox="0 0 500 250">
+          <rect x="40" y="100" width="420" height="90" rx="12" fill="#94a3b8"/>
+          <rect x="80" y="55" width="120" height="55" rx="8" fill="#cbd5e1"/>
+          <rect x="240" y="55" width="120" height="55" rx="8" fill="#cbd5e1"/>
+          <circle cx="140" cy="205" r="22" fill="#334155"/>
+          <circle cx="360" cy="205" r="22" fill="#334155"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <h2>Login</h2>
+      <p style="color:var(--muted); margin-bottom:24px;">Access your MachCare account</p>
+
+      <input id="emailInput" type="email" placeholder="Email">
+      <input id="passwordInput" type="password" placeholder="Password">
+
+      <div id="loginError" style="margin-bottom: 12px; font-size: 13px; color: #ef4444; min-height: 16px;"></div>
+
+      <button class="login-btn" onclick="login()">Login</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================
+   THEME TOGGLE LOGIC
+========================= */
+const btn = document.getElementById("themeToggle");
+const root = document.documentElement;
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    root.setAttribute("data-theme","dark");
+    btn.textContent = "☀ Light";
+  } else {
+    root.removeAttribute("data-theme");
+    btn.textContent = "🌙 Dark";
+  }
+  localStorage.setItem("theme", theme);
+}
+
+btn.addEventListener("click", () => {
+  const isDark = root.getAttribute("data-theme") === "dark";
+  applyTheme(isDark ? "light" : "dark");
+});
+
+applyTheme(localStorage.getItem("theme") || "dark");
+
+/* =========================
+   API & ROLE BASED LOGIN
+========================= */
+async function login() {
+  const emailInput = document.getElementById("emailInput");
+  const passwordInput = document.getElementById("passwordInput");
+  const errorBox = document.getElementById("loginError");
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  errorBox.textContent = "";
+
+  if (!email || !password) {
+    errorBox.textContent = "Please enter both email and password.";
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8080/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // Store session details
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("email", email);
+      localStorage.setItem("name", data.name);
+
+      // Handle roles (case-insensitive check)
+      const role = data.role.toLowerCase();
+
+      if (role === "Admin") {
+        window.location.href = "./admin.html";
+      } 
+      else if (role === "engineer" || role === "maintenance_engineer") {
+        window.location.href = "./Admin_and_configuration_module/Maintenance_dashboard.html";
+      } 
+      else if (role === "operator") {
+        window.location.href = "./Admin_and_configuration_module/Operator_dashboard.html";
+      } else {
+        errorBox.textContent = "User role not recognized.";
+      }
+
+    } else {
+      errorBox.textContent = data.message || "Invalid Email ID or Password";
+    }
+
+  } catch (error) {
+    console.error("Connection Error:", error);
+    errorBox.textContent = "Cannot connect to server. Ensure Eclipse app is running!";
+  }
+}
+
+function goBack() {
+  window.location.href = "landingpage.html";
+}
+</script>
+
+</body>
+</html>
