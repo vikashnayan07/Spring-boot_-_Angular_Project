@@ -49,7 +49,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class AdminController {
 
     @Autowired private MachCareCoreService coreService;

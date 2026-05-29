@@ -19,7 +19,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/audit-logs")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class AuditLogController {
 
     @Autowired

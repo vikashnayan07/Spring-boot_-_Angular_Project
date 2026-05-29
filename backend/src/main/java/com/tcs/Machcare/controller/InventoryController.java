@@ -23,7 +23,13 @@ import java.util.stream.Collectors;
 //  CHANGED: Now it is a real Web Controller!
 @RestController
 @RequestMapping("/api/inventory")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {
+        "http://localhost:4200",
+        "http://localhost:9090"
+    },
+    allowCredentials = "true"
+)
 public class InventoryController {
 
     @Autowired private PartRepository partRepository;
