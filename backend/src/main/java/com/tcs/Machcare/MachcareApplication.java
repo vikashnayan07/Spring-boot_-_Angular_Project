@@ -29,11 +29,12 @@ public class MachcareApplication extends SpringBootServletInitializer {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
-                            "http://localhost:4200",
-                            "http://localhost:9090"
+                                "http://localhost:4200",
+                                "http://localhost:9090"
                         )
                         .allowedMethods("*")
-                        .allowedHeaders("*");
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }
