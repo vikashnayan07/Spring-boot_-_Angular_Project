@@ -66,15 +66,8 @@ public class DemoDataSeeder {
             ensureEmployee(employees, logins, passwordEncoder, "Priya Nair", "engineer2.demo@machcare.me", 2, RoleType.Maintenance_engineer);
             ensureEmployee(employees, logins, passwordEncoder, "Kabir Sethi", "operator2.demo@machcare.me", 3, RoleType.Operator);
 
-            seedMachines(machines);
-            seedParts(parts);
-            seedFaults(faults, operator);
-            seedAlerts(alerts, engineer);
-            seedSchedules(schedules, engineer);
-            seedHistories(histories, engineer);
-            seedUsages(usages, engineer);
-            seedAuditLogs(auditLogs, admin, engineer, operator);
             seedGuaranteedDemoRows(jdbcTemplate);
+            seedAuditLogs(auditLogs, admin, engineer, operator);
         };
     }
 
@@ -316,11 +309,11 @@ public class DemoDataSeeder {
     private void seedGuaranteedDemoRows(JdbcTemplate jdbc) {
         run(jdbc,
                 "insert into dev.machine (machine_id, machine_name, machine_type, status, fault_type, description, production_criticality, current_operational_load, is_production_bottleneck, expected_mtbf, expected_mttr, purchase_date, warranty_expiry_date, last_service_date, next_service_due_date, lifecycle_status, health_status, warranty_status) values " +
-                        "('MC-LATHE-01','CNC Lathe Alpha','CNC Lathe','Running','Vibration','Demo CNC lathe for production monitoring','High',72,false,292,118,current_date - interval '2 years',current_date + interval '18 months',current_date - interval '20 days',current_date + interval '10 days','Active','Healthy','In Warranty')," +
-                        "('MC-PRESS-02','Hydraulic Press Beta','Hydraulic Press','Idle','Pressure','Demo hydraulic press for maintenance planning','Critical',58,true,278,132,current_date - interval '3 years',current_date + interval '9 months',current_date - interval '31 days',current_date + interval '4 days','Active','Attention','In Warranty')," +
-                        "('MC-CUT-03','Laser Cutter Gamma','Laser Cutter','Running','Alignment','Demo laser cutter for fault analytics','Medium',81,false,301,109,current_date - interval '1 years',current_date + interval '22 months',current_date - interval '12 days',current_date + interval '18 days','Active','Healthy','In Warranty')," +
-                        "('MC-COMP-04','Air Compressor Delta','Compressor','Stopped','Temperature','Demo compressor for alert escalation','High',34,true,254,156,current_date - interval '4 years',current_date + interval '4 months',current_date - interval '42 days',current_date + interval '2 days','Service Due','At Risk','Expiring Soon')," +
-                        "('MC-MILL-05','Milling Center Sigma','Milling Machine','Running','Coolant','Demo milling center for operator workflows','Medium',66,false,286,124,current_date - interval '2 years',current_date + interval '15 months',current_date - interval '18 days',current_date + interval '12 days','Active','Healthy','In Warranty') " +
+                        "('MC-LATHE-01','CNC Lathe Alpha','CNC Lathe','Running'::dev.machine_status_enum,'Vibration','Demo CNC lathe for production monitoring','High',72,false,292,118,current_date - interval '2 years',current_date + interval '18 months',current_date - interval '20 days',current_date + interval '10 days','Active','Healthy','In Warranty')," +
+                        "('MC-PRESS-02','Hydraulic Press Beta','Hydraulic Press','Idle'::dev.machine_status_enum,'Pressure','Demo hydraulic press for maintenance planning','Critical',58,true,278,132,current_date - interval '3 years',current_date + interval '9 months',current_date - interval '31 days',current_date + interval '4 days','Active','Attention','In Warranty')," +
+                        "('MC-CUT-03','Laser Cutter Gamma','Laser Cutter','Running'::dev.machine_status_enum,'Alignment','Demo laser cutter for fault analytics','Medium',81,false,301,109,current_date - interval '1 years',current_date + interval '22 months',current_date - interval '12 days',current_date + interval '18 days','Active','Healthy','In Warranty')," +
+                        "('MC-COMP-04','Air Compressor Delta','Compressor','Stopped'::dev.machine_status_enum,'Temperature','Demo compressor for alert escalation','High',34,true,254,156,current_date - interval '4 years',current_date + interval '4 months',current_date - interval '42 days',current_date + interval '2 days','Service Due','At Risk','Expiring Soon')," +
+                        "('MC-MILL-05','Milling Center Sigma','Milling Machine','Running'::dev.machine_status_enum,'Coolant','Demo milling center for operator workflows','Medium',66,false,286,124,current_date - interval '2 years',current_date + interval '15 months',current_date - interval '18 days',current_date + interval '12 days','Active','Healthy','In Warranty') " +
                         "on conflict (machine_id) do nothing");
 
         run(jdbc,
@@ -336,21 +329,21 @@ public class DemoDataSeeder {
 
         run(jdbc,
                 "insert into dev.fault_log (fault_id, machine_id, description, severity, fault_date, fault_time, reported_by, reported_by_name, priority_score, priority_level, production_impact_score, analysis_status) values " +
-                        "('DEMO-FLT-001','MC-PRESS-02','Hydraulic pressure fluctuation detected','High',current_date - interval '1 day','09:15',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',78,'High',61,'Pending')," +
-                        "('DEMO-FLT-002','MC-COMP-04','Compressor outlet temperature above normal','Critical',current_date - interval '2 days','10:05',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',92,'Critical',88,'Pending')," +
-                        "('DEMO-FLT-003','MC-LATHE-01','Tool vibration warning during finishing pass','Medium',current_date - interval '3 days','11:30',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Medium',61,'Pending')," +
-                        "('DEMO-FLT-004','MC-CUT-03','Laser alignment drift noticed','Medium',current_date - interval '4 days','12:20',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Medium',61,'Pending')," +
-                        "('DEMO-FLT-005','MC-MILL-05','Coolant flow below target threshold','Low',current_date - interval '5 days','14:45',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Low',61,'Pending') " +
+                        "('DEMO-FLT-001','MC-PRESS-02','Hydraulic pressure fluctuation detected','High'::dev.severity_enum,current_date - interval '1 day','09:15',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',78,'High',61,'Pending')," +
+                        "('DEMO-FLT-002','MC-COMP-04','Compressor outlet temperature above normal','Critical'::dev.severity_enum,current_date - interval '2 days','10:05',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',92,'Critical',88,'Pending')," +
+                        "('DEMO-FLT-003','MC-LATHE-01','Tool vibration warning during finishing pass','Medium'::dev.severity_enum,current_date - interval '3 days','11:30',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Medium',61,'Pending')," +
+                        "('DEMO-FLT-004','MC-CUT-03','Laser alignment drift noticed','Medium'::dev.severity_enum,current_date - interval '4 days','12:20',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Medium',61,'Pending')," +
+                        "('DEMO-FLT-005','MC-MILL-05','Coolant flow below target threshold','Low'::dev.severity_enum,current_date - interval '5 days','14:45',(select emp_id from dev.employee where email='operator.demo@machcare.me' limit 1),'Rohan Mehta',54,'Low',61,'Pending') " +
                         "on conflict (fault_id) do nothing");
 
         run(jdbc,
                 "insert into dev.machine_alert (machine_id, analysis_id, issue_name, severity, priority, emp_id, alert_priority, alert_reason, generated_by_system, linked_fault_id, linked_analysis_id) " +
                         "select * from (values " +
-                        "('MC-PRESS-02',null,'Pressure instability','High',0,(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-001',null)," +
-                        "('MC-COMP-04',null,'Thermal overload risk','Critical',0,(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-002',null)," +
-                        "('MC-LATHE-01',null,'Vibration trend rising','Medium',1,(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-003',null)," +
-                        "('MC-CUT-03',null,'Optical calibration required','Medium',1,(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-004',null)," +
-                        "('MC-MILL-05',null,'Coolant system inspection','Low',2,(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'3','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-005',null)" +
+                        "('MC-PRESS-02',null,'Pressure instability','High','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-001',null)," +
+                        "('MC-COMP-04',null,'Thermal overload risk','Critical','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-002',null)," +
+                        "('MC-LATHE-01',null,'Vibration trend rising','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-003',null)," +
+                        "('MC-CUT-03',null,'Optical calibration required','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-004',null)," +
+                        "('MC-MILL-05',null,'Coolant system inspection','Low','3',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'3','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-005',null)" +
                         ") as v(machine_id, analysis_id, issue_name, severity, priority, emp_id, alert_priority, alert_reason, generated_by_system, linked_fault_id, linked_analysis_id) " +
                         "where not exists (select 1 from dev.machine_alert a where a.linked_fault_id = v.linked_fault_id)");
 
