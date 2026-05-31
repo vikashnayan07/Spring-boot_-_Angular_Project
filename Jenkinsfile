@@ -1,48 +1,94 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven3'
-        nodejs 'Node18'
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+    }
+
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
+    environment {
+        APP_URL = 'https://machcare.me'
+        WAR_PATH = 'backend/target/demo-0.0.1-SNAPSHOT.war'
+        SPRING_PROFILES_ACTIVE = 'prod'
     }
 
     stages {
+        stage('Install Frontend Dependencies') {
+            steps {
+                dir('frontend') {
+                    sh 'npm ci'
+                }
+            }
+        }
 
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'npm install'
-                    bat 'npm run build'
+                    sh 'npm run build'
+                    sh '! grep -R "localhost:9090\\|localhost:8080" dist/angular/browser'
                 }
             }
         }
 
-        stage('Copy Frontend') {
+        stage('Package Frontend Assets') {
             steps {
-                bat 'xcopy /E /I /Y frontend\\dist\\angular\\browser\\* backend\\src\\main\\resources\\static\\'
+                sh '''
+                    set -eu
+                    find backend/src/main/resources/static -maxdepth 1 -type f \\( \
+                        -name 'main-*.js' -o \
+                        -name 'chunk-*.js' -o \
+                        -name 'polyfills-*.js' -o \
+                        -name 'styles-*.css' -o \
+                        -name 'index.html' -o \
+                        -name 'favicon.ico' \
+                    \\) -delete
+                    rm -rf backend/src/main/resources/static/landing
+                    cp -R frontend/dist/angular/browser/. backend/src/main/resources/static/
+                '''
             }
         }
 
-        stage('Build Backend') {
+        stage('Build And Test Backend') {
             steps {
                 dir('backend') {
-                    bat 'mvn clean package -DskipTests'
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean package'
                 }
             }
         }
 
-        stage('Deploy to Tomcat') {
+        stage('Deploy To Tomcat') {
             steps {
-                deploy adapters: [
-                    tomcat9(
-                        credentialsId: 'tomcat-creds',
-                        path: '',
-                        url: 'http://localhost:9090'
-                    )
-                ],
-                contextPath: '/machcare',
-                war: 'backend/target/*.war'
+                sh 'sudo /usr/local/bin/machcare-deploy "$WAR_PATH"'
             }
+        }
+
+        stage('Verify Production') {
+            steps {
+                sh '''
+                    set -eu
+                    curl -fsSI "$APP_URL/" >/dev/null
+                    curl -fsSI "$APP_URL/machcare/" >/dev/null
+                    curl -fsS -X POST "$APP_URL/machcare/api/auth/login" \
+                        -H 'Content-Type: application/json' \
+                        --data '{"email":"vikash@gmail.com","password":"Admin@123"}' \
+                        | grep -q '"success":true'
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "MachCare deployed successfully: ${env.APP_URL}"
+        }
+        failure {
+            echo 'MachCare deployment failed. Check the stage log above.'
         }
     }
 }
