@@ -87,6 +87,13 @@ pipeline {
                     set -eu
                     curl -fsSI "$APP_URL/" >/dev/null
                     curl -fsSI "$APP_URL/machcare/" >/dev/null
+                    INDEX_HTML="$(curl -fsS "$APP_URL/machcare/")"
+                    printf '%s' "$INDEX_HTML" | grep -q 'src="/machcare/main-'
+                    printf '%s' "$INDEX_HTML" | grep -q 'href="/machcare/styles-'
+                    MAIN_JS="$(printf '%s' "$INDEX_HTML" | sed -n 's/.*src="\\([^"]*main-[^"]*\\.js\\)".*/\\1/p' | head -n 1)"
+                    STYLES_CSS="$(printf '%s' "$INDEX_HTML" | sed -n 's/.*href="\\([^"]*styles-[^"]*\\.css\\)".*/\\1/p' | head -n 1)"
+                    curl -fsSI "$APP_URL$MAIN_JS" >/dev/null
+                    curl -fsSI "$APP_URL$STYLES_CSS" >/dev/null
                     curl -fsS -X POST "$APP_URL/machcare/api/auth/login" \
                         -H 'Content-Type: application/json' \
                         --data '{"email":"vikash@gmail.com","password":"Admin@123"}' \
