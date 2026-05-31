@@ -1,8 +1,6 @@
 package com.tcs.Machcare.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +20,6 @@ public class Employee {
     private Integer roleId;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "role_name")
     private RoleType roleName;
 
