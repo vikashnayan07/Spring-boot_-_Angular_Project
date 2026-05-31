@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "fault_log", schema = "dev")
@@ -22,7 +20,6 @@ public class FaultLog {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "dev.severity_enum")
     private Severity severity;
 

@@ -1,9 +1,6 @@
 package com.tcs.Machcare.entity;
 
 import jakarta.persistence.*;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import java.time.LocalDate;
 
 @Entity
@@ -21,7 +18,6 @@ public class Machine {
     private String machineType;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(
         name = "status",
         columnDefinition = "dev.machine_status_enum"
