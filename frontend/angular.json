@@ -31,6 +31,8 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/machcare/",
+              "deployUrl": "/machcare/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
