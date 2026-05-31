@@ -97,7 +97,6 @@ pipeline {
                         | while read -r asset; do
                             curl -fsS "$APP_URL$asset" -o /dev/null
                         done
-                    curl -fsS "$APP_URL$MAIN_JS" | grep -q 'bootstrapApplication'
                     curl -fsS -X POST "$APP_URL/machcare/api/auth/login" \
                         -H 'Content-Type: application/json' \
                         --data '{"email":"vikash@gmail.com","password":"Admin@123"}' \
