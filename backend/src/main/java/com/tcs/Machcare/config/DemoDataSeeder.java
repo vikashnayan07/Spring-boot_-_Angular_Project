@@ -25,6 +25,8 @@ import com.tcs.Machcare.repository.MaintenanceHistoryRepository;
 import com.tcs.Machcare.repository.MaintenanceScheduleRepository;
 import com.tcs.Machcare.repository.PartRepository;
 import com.tcs.Machcare.repository.PartUsageRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +44,7 @@ import java.util.List;
 @Profile("prod")
 public class DemoDataSeeder {
 
+    private static final Logger log = LoggerFactory.getLogger(DemoDataSeeder.class);
     private static final String DEMO_PASSWORD = "Admin@123";
 
     @Bean
@@ -339,33 +342,37 @@ public class DemoDataSeeder {
         run(jdbc,
                 "insert into dev.machine_alert (machine_id, analysis_id, issue_name, severity, priority, emp_id, alert_priority, alert_reason, generated_by_system, linked_fault_id, linked_analysis_id) " +
                         "select * from (values " +
-                        "('MC-PRESS-02',null,'Pressure instability','High','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-001',null)," +
-                        "('MC-COMP-04',null,'Thermal overload risk','Critical','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-002',null)," +
-                        "('MC-LATHE-01',null,'Vibration trend rising','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-003',null)," +
-                        "('MC-CUT-03',null,'Optical calibration required','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-004',null)," +
-                        "('MC-MILL-05',null,'Coolant system inspection','Low','3',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'3','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-005',null)" +
+                        "('MC-PRESS-02',null::bigint,'Pressure instability','High','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-001',null::bigint)," +
+                        "('MC-COMP-04',null::bigint,'Thermal overload risk','Critical','1',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'1','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-002',null::bigint)," +
+                        "('MC-LATHE-01',null::bigint,'Vibration trend rising','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-003',null::bigint)," +
+                        "('MC-CUT-03',null::bigint,'Optical calibration required','Medium','2',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'2','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-004',null::bigint)," +
+                        "('MC-MILL-05',null::bigint,'Coolant system inspection','Low','3',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'3','Demo alert generated for dashboard presentation.',true,'DEMO-FLT-005',null::bigint)" +
                         ") as v(machine_id, analysis_id, issue_name, severity, priority, emp_id, alert_priority, alert_reason, generated_by_system, linked_fault_id, linked_analysis_id) " +
                         "where not exists (select 1 from dev.machine_alert a where a.linked_fault_id = v.linked_fault_id)");
 
         run(jdbc,
                 "insert into dev.maintenance_history (schedule_id, alert_id, machine_id, emp_id, status, remarks, maintenance_date, maintenance_time, resolved_date, resolved_time, last_updated, part_id, qty_assigned) " +
                         "select * from (values " +
-                        "(null,null,'MC-CUT-03',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Lens cleaned and calibrated',current_date - interval '7 days','10:30',current_date - interval '6 days','14:00',now(),(select part_id from dev.part where part_name='Laser Lens Assembly' limit 1),2)," +
-                        "(null,null,'MC-LATHE-01',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Spindle vibration checked',current_date - interval '8 days','11:10',current_date - interval '7 days','15:10',now(),(select part_id from dev.part where part_name='Servo Drive Module' limit 1),1)," +
-                        "(null,null,'MC-PRESS-02',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'In_progress','Hydraulic seals under inspection',current_date - interval '1 day','09:40',null,null,now(),(select part_id from dev.part where part_name='Hydraulic Seal Kit' limit 1),3)," +
-                        "(null,null,'MC-COMP-04',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Pending','Thermal diagnostics queued',current_date,'08:45',null,null,now(),(select part_id from dev.part where part_name='Compressor Filter' limit 1),1)," +
-                        "(null,null,'MC-MILL-05',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Coolant pump flushed',current_date - interval '5 days','10:00',current_date - interval '5 days','13:00',now(),(select part_id from dev.part where part_name='Spindle Bearing Set' limit 1),2)" +
+                        "(null::bigint,null::bigint,'MC-CUT-03',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Lens cleaned and calibrated',current_date - interval '7 days','10:30',current_date - interval '6 days','14:00',now(),(select part_id from dev.part where part_name='Laser Lens Assembly' limit 1),2)," +
+                        "(null::bigint,null::bigint,'MC-LATHE-01',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Spindle vibration checked',current_date - interval '8 days','11:10',current_date - interval '7 days','15:10',now(),(select part_id from dev.part where part_name='Servo Drive Module' limit 1),1)," +
+                        "(null::bigint,null::bigint,'MC-PRESS-02',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'In_progress','Hydraulic seals under inspection',current_date - interval '1 day','09:40',null,null,now(),(select part_id from dev.part where part_name='Hydraulic Seal Kit' limit 1),3)," +
+                        "(null::bigint,null::bigint,'MC-COMP-04',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Pending','Thermal diagnostics queued',current_date,'08:45',null,null,now(),(select part_id from dev.part where part_name='Compressor Filter' limit 1),1)," +
+                        "(null::bigint,null::bigint,'MC-MILL-05',(select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1),'Completed','Coolant pump flushed',current_date - interval '5 days','10:00',current_date - interval '5 days','13:00',now(),(select part_id from dev.part where part_name='Spindle Bearing Set' limit 1),2)" +
                         ") as v(schedule_id, alert_id, machine_id, emp_id, status, remarks, maintenance_date, maintenance_time, resolved_date, resolved_time, last_updated, part_id, qty_assigned) " +
                         "where not exists (select 1 from dev.maintenance_history h where h.machine_id = v.machine_id and h.remarks = v.remarks)");
 
         run(jdbc,
                 "insert into dev.part_usage (part_id, emp_id, qty_assigned, last_updated, schedule_id, history_id) " +
-                        "select part_id, (select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1), 1, now(), null, null from dev.part p " +
+                        "select part_id, (select emp_id from dev.employee where email='engineer.demo@machcare.me' limit 1), 1, now(), null::bigint, null::bigint from dev.part p " +
                         "where p.part_name in ('Servo Drive Module','Hydraulic Seal Kit','Laser Lens Assembly','Compressor Filter','Spindle Bearing Set') " +
                         "and not exists (select 1 from dev.part_usage u where u.part_id = p.part_id)");
     }
 
     private void run(JdbcTemplate jdbc, String sql) {
-        jdbc.execute(sql);
+        try {
+            jdbc.execute(sql);
+        } catch (Exception ex) {
+            log.warn("Demo data seed statement skipped: {}", ex.getMessage());
+        }
     }
 }
