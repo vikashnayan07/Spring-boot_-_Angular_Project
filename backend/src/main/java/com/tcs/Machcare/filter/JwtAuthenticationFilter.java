@@ -32,7 +32,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        return "OPTIONS".equalsIgnoreCase(request.getMethod()) || path.startsWith("/api/auth/");
+        return "OPTIONS".equalsIgnoreCase(request.getMethod())
+                || path.startsWith("/api/auth/")
+                || isStaticAsset(path);
+    }
+
+    private boolean isStaticAsset(String path) {
+        return path.equals("/")
+                || path.equals("/index.html")
+                || path.equals("/favicon.ico")
+                || path.startsWith("/assets/")
+                || path.startsWith("/landing/")
+                || path.endsWith(".js")
+                || path.endsWith(".css")
+                || path.endsWith(".map")
+                || path.endsWith(".png")
+                || path.endsWith(".jpg")
+                || path.endsWith(".jpeg")
+                || path.endsWith(".svg")
+                || path.endsWith(".webp")
+                || path.endsWith(".woff")
+                || path.endsWith(".woff2");
     }
 
     @Override

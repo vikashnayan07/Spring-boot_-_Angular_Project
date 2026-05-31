@@ -65,6 +65,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "https://machcare-frontend.vercel.app",
+                "https://machcare.me",
+                "https://www.machcare.me",
+                "http://machcare.me",
+                "http://www.machcare.me",
                 "http://localhost:4200",
                 "http://localhost:8080",
                 "http://localhost:9090"
