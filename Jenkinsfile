@@ -12,7 +12,7 @@ pipeline {
 
     environment {
         APP_URL = 'https://machcare.me'
-        WAR_PATH = 'backend/target/demo-0.0.1-SNAPSHOT.war'
+        WAR_PATH = 'backend/target/ROOT.war'
         SPRING_PROFILES_ACTIVE = 'prod'
     }
 
