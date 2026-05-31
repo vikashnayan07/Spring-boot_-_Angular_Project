@@ -1,0 +1,14 @@
+# Angular build output copied into the Spring Boot WAR during CI.
+backend/src/main/resources/static/main-*.js
+backend/src/main/resources/static/chunk-*.js
+backend/src/main/resources/static/polyfills-*.js
+backend/src/main/resources/static/styles-*.css
+backend/src/main/resources/static/index.html
+backend/src/main/resources/static/favicon.ico
+backend/src/main/resources/static/landing/
+
+# Local build/dependency output.
+frontend/dist/
+frontend/.angular/
+frontend/node_modules/
+backend/target/
