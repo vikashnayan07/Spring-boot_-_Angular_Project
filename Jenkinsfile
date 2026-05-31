@@ -73,7 +73,11 @@ pipeline {
 
         stage('Deploy To Tomcat') {
             steps {
-                sh 'sudo /usr/local/bin/machcare-deploy "$WAR_PATH"'
+                sh '''
+                    rm -f .jenkins-deployed
+                    sudo /usr/local/bin/machcare-deploy deploy "$WAR_PATH"
+                    touch .jenkins-deployed
+                '''
             }
         }
 
@@ -97,6 +101,11 @@ pipeline {
             echo "MachCare deployed successfully: ${env.APP_URL}"
         }
         failure {
+            script {
+                if (fileExists('.jenkins-deployed')) {
+                    sh 'sudo /usr/local/bin/machcare-deploy rollback || true'
+                }
+            }
             echo 'MachCare deployment failed. Check the stage log above.'
         }
     }
