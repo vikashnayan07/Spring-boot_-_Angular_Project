@@ -209,7 +209,9 @@ import com.tcs.Machcare.service.FaultLogService;
 @RequestMapping({"/faultlogs", "/api/faultlogs"})
 @CrossOrigin(
         origins = {
+                "https://machcare-frontend.vercel.app",
                 "http://localhost:4200",
+                "http://localhost:8080",
                 "http://localhost:9090"
         },
         allowCredentials = "true"

@@ -21,7 +21,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/audit-logs")
 @CrossOrigin(
     origins = {
+        "https://machcare-frontend.vercel.app",
         "http://localhost:4200",
+        "http://localhost:8080",
         "http://localhost:9090"
     },
     allowCredentials = "true"
