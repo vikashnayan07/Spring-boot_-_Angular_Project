@@ -79,7 +79,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>machcare</finalName>
+		<finalName>ROOT</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
