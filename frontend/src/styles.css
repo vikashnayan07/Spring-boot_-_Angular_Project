@@ -392,6 +392,16 @@ router-outlet + * {
   letter-spacing: 0.03em;
 }
 
+.enterprise-brand-logo {
+  width: 3.15rem;
+  height: 3.15rem;
+  flex: 0 0 auto;
+  border-radius: 1rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 38px rgba(34, 211, 238, 0.18);
+}
+
 .enterprise-brand-title {
   display: block;
   font-family: var(--font-heading);
@@ -1543,6 +1553,89 @@ router-outlet + * {
 .lifecycle-drill-row{display:flex;width:100%;align-items:center;justify-content:space-between;border:1px solid transparent;border-radius:.85rem;background:transparent;padding:.55rem .7rem;text-align:left;transition:background-color .18s ease,border-color .18s ease,transform .18s ease}.lifecycle-drill-row:hover{cursor:pointer;border-color:var(--th-border);background:var(--bg-hover);transform:translateX(2px)}.lifecycle-drill-row.active{border-color:rgba(34,211,238,.32);background:rgba(34,211,238,.1)}
 
 /* Enterprise mobile/tablet hardening */
+.landing-menu-button {
+  display: inline-flex;
+  width: 2.85rem;
+  height: 2.85rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.76);
+  color: #fff;
+  box-shadow: 0 16px 42px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.landing-menu-button span {
+  width: 1.1rem;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.22s ease, opacity 0.18s ease;
+}
+
+.landing-menu-button.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.landing-menu-button.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.landing-menu-button.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.landing-mobile-panel {
+  position: fixed;
+  top: 4.8rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 39;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(2, 6, 23, 0.94);
+  box-shadow: 0 30px 80px rgba(2, 6, 23, 0.44);
+  padding: 0.75rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.6rem) scale(0.98);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  backdrop-filter: blur(18px);
+}
+
+.landing-mobile-panel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.landing-mobile-panel button {
+  min-height: 3rem;
+  border-radius: 0.9rem;
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.landing-mobile-panel button:hover,
+.landing-mobile-panel button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.landing-mobile-login {
+  margin-top: 0.25rem;
+  background: linear-gradient(135deg, #f97316, #ec4899, #7c3aed);
+  color: #fff !important;
+  text-align: center !important;
+}
+
 @media (max-width: 1180px) {
   .enterprise-content {
     padding: 1rem;
@@ -1604,12 +1697,7 @@ router-outlet + * {
   }
 
   .sidebar-mobile-toggle {
-    left: 1rem;
-    top: 0.85rem;
-    bottom: auto;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.9rem;
+    display: none !important;
   }
 
   .enterprise-main {
@@ -1617,7 +1705,7 @@ router-outlet + * {
   }
 
   app-navbar nav {
-    padding-left: 3.2rem;
+    padding-left: 0;
   }
 
   .enterprise-page-header {
@@ -1682,10 +1770,23 @@ router-outlet + * {
   }
 
   app-navbar nav .h-16 {
-    height: auto;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 0.65rem 0;
+    height: 4.25rem;
+    flex-wrap: nowrap;
+    gap: 0.55rem;
+    padding: 0.45rem 0;
+  }
+
+  app-navbar nav .flex.items-center.gap-10 {
+    min-width: 0;
+    gap: 0.55rem !important;
+  }
+
+  app-navbar nav .flex.items-center.gap-3 {
+    gap: 0.45rem !important;
+  }
+
+  app-navbar nav .w-px {
+    display: none;
   }
 
   app-navbar nav .w-\[360px\],
@@ -1812,6 +1913,34 @@ router-outlet + * {
     width: min(100% - 1rem, 1180px);
   }
 
+  .landing-nav-shell {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 4.75rem;
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.65rem !important;
+  }
+
+  .landing-brand {
+    max-width: 100%;
+  }
+
+  .landing-logo {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+  }
+
+  .landing-hero-mobile {
+    min-height: 100svh;
+  }
+
+  .landing-hero-mobile video {
+    opacity: 0.54;
+  }
+
+  .landing-hero-mobile section {
+    text-align: left;
+  }
+
   .hero-layout {
     gap: 2rem;
     padding: 2rem 0;
@@ -1824,6 +1953,67 @@ router-outlet + * {
   .hero-actions > * {
     width: 100%;
     justify-content: center;
+  }
+
+  .landing-stat-grid {
+    margin-top: 1.5rem !important;
+    gap: 0.75rem !important;
+  }
+
+  #home h1 {
+    max-width: 20rem;
+    font-size: clamp(2.25rem, 11vw, 3.4rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: 0 !important;
+  }
+
+  #home p,
+  #about p,
+  #services p {
+    text-wrap: pretty;
+  }
+
+  #home .text-3xl {
+    display: block;
+    width: 100%;
+    font-size: clamp(1.75rem, 8vw, 2.35rem) !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+  }
+
+  #home .min-h-\[4\.5rem\] {
+    justify-content: flex-start;
+    min-height: 3.7rem !important;
+    padding-inline: 0 !important;
+  }
+
+  #home .mt-7.flex {
+    align-items: stretch !important;
+  }
+
+  #home .mt-7.flex > button {
+    width: 100%;
+  }
+
+  #about,
+  #services {
+    padding-top: 3.25rem !important;
+    padding-bottom: 3.25rem !important;
+  }
+
+  #about h2,
+  #services h2 {
+    font-size: clamp(2rem, 9vw, 2.8rem) !important;
+    letter-spacing: 0 !important;
+  }
+
+  #contact .grid {
+    gap: 1.5rem !important;
+  }
+
+  #contact .py-16 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
   }
 }
 
@@ -1841,6 +2031,16 @@ router-outlet + * {
   .enterprise-brand-title,
   app-navbar h2 {
     font-size: 1rem !important;
+  }
+
+  .enterprise-brand-logo {
+    width: 2.85rem;
+    height: 2.85rem;
+  }
+
+  .landing-logo {
+    width: 2.9rem !important;
+    height: 2.9rem !important;
   }
 
   .enterprise-card-label,

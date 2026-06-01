@@ -16,6 +16,20 @@
   min-width: 0;
 }
 
+.footer-brand-lockup {
+  min-width: 0;
+}
+
+.footer-brand-logo {
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  border-radius: 1rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 40px rgba(34, 211, 238, 0.18);
+}
+
 .footer-link {
   width: fit-content;
   color: var(--th-muted);
@@ -50,11 +64,27 @@
 
   .footer-grid {
     grid-template-columns: 1fr;
-    padding: 1.25rem;
+    gap: 1.25rem;
+    padding: 1.15rem;
+    border-radius: 1rem;
   }
 
   .footer-bottom {
+    justify-content: center;
     align-items: flex-start;
     flex-direction: column;
+    padding-inline: 0.35rem;
+    text-align: left;
+  }
+
+  .footer-brand-logo {
+    width: 3.2rem;
+    height: 3.2rem;
+  }
+
+  .footer-link {
+    width: 100%;
+    border-radius: 0.75rem;
+    padding: 0.4rem 0;
   }
 }

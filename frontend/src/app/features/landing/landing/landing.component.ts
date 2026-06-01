@@ -107,6 +107,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   aboutVisible = false;
   servicesVisible = false;
   footerVisible = false;
+  mobileMenuOpen = false;
   currentMessageIndex = 0;
   currentMessage = this.heroMessages[0];
   messageTransitioning = false;
@@ -183,10 +184,12 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToLogin(): void {
+    this.closeMobileMenu();
     this.router.navigate(['/login']);
   }
 
   scrollToSection(sectionId: string): void {
+    this.closeMobileMenu();
     document
       .getElementById(sectionId)
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -294,6 +297,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onLogoError(): void {
     this.logoFailed = true;
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
   }
 
   footerColumnClass(): string {

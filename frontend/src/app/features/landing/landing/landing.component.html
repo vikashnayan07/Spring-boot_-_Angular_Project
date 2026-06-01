@@ -6,32 +6,33 @@
     [ngClass]="navbarClass"
   >
     <div
-      class="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-4 sm:px-6 lg:px-8"
+      class="landing-nav-shell mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8"
     >
       <a
         href="#home"
-        class="flex items-center gap-3 rounded-full px-2 py-1.5 transition hover:bg-white/5 sm:gap-4"
+        class="landing-brand flex min-w-0 items-center gap-3 rounded-full px-2 py-1.5 transition hover:bg-white/5 sm:gap-4"
+        (click)="closeMobileMenu()"
       >
         <img
           *ngIf="!logoFailed"
           [src]="logoSrc"
           alt="MachCare logo"
-          class="h-10 w-10 rounded-xl object-contain sm:h-11 sm:w-11"
+          class="landing-logo h-12 w-12 rounded-2xl object-contain sm:h-14 sm:w-14"
           (error)="onLogoError()"
         />
         <div
           *ngIf="logoFailed"
-          class="grid h-10 w-10 place-items-center rounded-xl bg-blue-500/20 text-sm font-black tracking-[0.18em] text-cyan-200 sm:h-11 sm:w-11"
+          class="landing-logo grid h-12 w-12 place-items-center rounded-2xl bg-blue-500/20 text-sm font-black tracking-[0.18em] text-cyan-200 sm:h-14 sm:w-14"
         >
           MC
         </div>
-        <div class="hidden leading-tight sm:block">
+        <div class="min-w-0 leading-tight">
           <div
-            class="text-sm font-black uppercase tracking-[0.24em] text-cyan-100"
+            class="truncate text-sm font-black uppercase tracking-[0.16em] text-cyan-100 sm:tracking-[0.24em]"
           >
             MachCare
           </div>
-          <div class="text-[0.7rem] font-semibold text-slate-300">
+          <div class="hidden text-[0.7rem] font-semibold text-slate-300 sm:block">
             Industrial Intelligence Platform
           </div>
         </div>
@@ -68,7 +69,7 @@
         </button>
       </nav>
 
-      <div class="flex items-center justify-end">
+      <div class="hidden items-center justify-end gap-2 md:flex">
         <button
           type="button"
           class="inline-flex items-center justify-center rounded-full border border-white/12 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(168,85,247,0.22)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_rgba(236,72,153,0.28)]"
@@ -77,10 +78,36 @@
           Login
         </button>
       </div>
+
+      <button
+        type="button"
+        class="landing-menu-button md:hidden"
+        [class.open]="mobileMenuOpen"
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="mobileMenuOpen"
+        aria-label="Toggle navigation menu"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <div
+      class="landing-mobile-panel md:hidden"
+      [class.open]="mobileMenuOpen"
+    >
+      <div class="grid gap-2">
+        <button type="button" (click)="scrollToSection('home')">Home</button>
+        <button type="button" (click)="goToAbout()">About</button>
+        <button type="button" (click)="goToServices()">Services</button>
+        <button type="button" (click)="goToContact()">Contact</button>
+        <button type="button" class="landing-mobile-login" (click)="goToLogin()">Login</button>
+      </div>
     </div>
   </header>
 
-  <div id="home" class="relative h-screen overflow-hidden bg-slate-950">
+  <div id="home" class="landing-hero-mobile relative min-h-screen overflow-hidden bg-slate-950">
     <video
       #heroVideo
       class="absolute inset-0 h-full w-full object-cover opacity-75"
@@ -103,7 +130,7 @@
     ></div>
 
     <div
-      class="relative z-10 mx-auto flex h-full w-full max-w-7xl items-center px-4 pt-24 sm:px-6 lg:px-8"
+      class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 pb-8 pt-28 sm:px-6 lg:px-8"
     >
       <section class="relative w-full text-center">
         <div
@@ -168,7 +195,7 @@
         </div>
 
         <div
-          class="mx-auto mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 sm:grid-cols-3"
+          class="landing-stat-grid mx-auto mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 sm:grid-cols-3"
         >
           <div
             class="group rounded-[1.5rem] border border-white/10 bg-white/7 px-5 py-5 text-left shadow-[0_18px_60px_rgba(0,0,0,0.18)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-orange-300/30 hover:bg-white/10 hover:shadow-[0_24px_70px_rgba(248,113,113,0.15)]"
@@ -382,12 +409,12 @@
               *ngIf="!logoFailed"
               [src]="logoSrc"
               alt="MachCare logo"
-              class="h-11 w-11 rounded-xl object-contain"
+              class="h-14 w-14 rounded-2xl object-contain"
               (error)="onLogoError()"
             />
             <div
               *ngIf="logoFailed"
-              class="grid h-11 w-11 place-items-center rounded-xl bg-blue-500/20 text-sm font-black tracking-[0.18em] text-cyan-200"
+              class="grid h-14 w-14 place-items-center rounded-2xl bg-blue-500/20 text-sm font-black tracking-[0.18em] text-cyan-200"
             >
               MC
             </div>
