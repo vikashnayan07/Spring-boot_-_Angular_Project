@@ -11,7 +11,7 @@
     </button>
 
     <a routerLink="/operator/dashboard" class="enterprise-brand" aria-label="MachCare operator dashboard">
-      <span class="enterprise-brand-mark">MC</span>
+      <img src="landing/logo.png" alt="MachCare logo" class="enterprise-brand-logo" />
       <span class="enterprise-brand-text">
         <span class="enterprise-brand-title gradient-text">MachCare</span>
         <span class="enterprise-brand-subtitle">Operator workspace</span>
@@ -47,6 +47,8 @@
     <app-navbar
       portalTitle="Operator Portal"
       [navLinks]="topNavLinks"
+      [showMenuToggle]="true"
+      (menuToggle)="toggleSidebar()"
     ></app-navbar>
 
     <div class="enterprise-content">

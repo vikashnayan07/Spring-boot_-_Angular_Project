@@ -17,12 +17,54 @@
   animation: badgePulse 1.6s ease-in-out infinite;
 }
 
+.app-brand-logo {
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  border-radius: 1rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 14px 34px rgba(34, 211, 238, 0.18);
+}
+
 .notification-dropdown,
 .profile-dropdown {
   background: color-mix(in srgb, var(--th-bg2) 96%, #020617) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 24px 70px rgba(2, 6, 23, 0.46);
+}
+
+@media (min-width: 1025px) {
+  button[aria-label="Toggle sidebar menu"] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-brand-logo {
+    width: 2.45rem;
+    height: 2.45rem;
+    border-radius: 0.85rem;
+  }
+
+  .profile-dropdown,
+  .notification-dropdown {
+    position: fixed !important;
+    top: 4.6rem !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+    max-height: calc(100vh - 5.5rem);
+    overflow: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-brand-logo {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
 }
 
 .notification-item {
