@@ -50,6 +50,15 @@ public class FaultAnalysis {
     @Column(name = "description")
     private String description;
 
+    @Transient
+    private String machineId;
+
+    @Transient
+    private BigDecimal currentMtbfHours;
+
+    @Transient
+    private BigDecimal currentMttrMinutes;
+
     public FaultAnalysis() {}
 
     public Long getAnalysisId() { return analysisId; }
@@ -90,4 +99,13 @@ public class FaultAnalysis {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getMachineId() { return machineId; }
+    public void setMachineId(String machineId) { this.machineId = machineId; }
+
+    public BigDecimal getCurrentMtbfHours() { return currentMtbfHours; }
+    public void setCurrentMtbfHours(BigDecimal currentMtbfHours) { this.currentMtbfHours = currentMtbfHours; }
+
+    public BigDecimal getCurrentMttrMinutes() { return currentMttrMinutes; }
+    public void setCurrentMttrMinutes(BigDecimal currentMttrMinutes) { this.currentMttrMinutes = currentMttrMinutes; }
 }

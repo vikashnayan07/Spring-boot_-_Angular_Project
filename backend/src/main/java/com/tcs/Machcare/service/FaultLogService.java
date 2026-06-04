@@ -312,12 +312,15 @@ public class FaultLogService {
 
     private final FaultLogRepository repository;
     private final PriorityQueueService priorityQueueService;
+    private final MachineMetricsService metricsService;
 
     public FaultLogService(
             FaultLogRepository repository,
-            PriorityQueueService priorityQueueService) {
+            PriorityQueueService priorityQueueService,
+            MachineMetricsService metricsService) {
         this.repository = repository;
         this.priorityQueueService = priorityQueueService;
+        this.metricsService = metricsService;
     }
 
     private synchronized String generateFaultId() {
@@ -378,20 +381,24 @@ public class FaultLogService {
         faultLog.setFaultTime(LocalTime.now().withNano(0));
 
         FaultLog savedFault = repository.save(faultLog);
-        return priorityQueueService.applyPriority(savedFault);
+        return enrichWithCurrentMetrics(priorityQueueService.applyPriority(savedFault));
     }
 
     public List<FaultLog> getAllFaultLogs() {
-        return repository.findAll();
+        return repository.findAll().stream()
+                .map(this::enrichWithCurrentMetrics)
+                .toList();
     }
 
     public List<FaultLog> getEngineerPendingQueue() {
-        return repository.findEngineerQueue(PriorityQueueService.STATUS_PENDING);
+        return repository.findEngineerQueue(PriorityQueueService.STATUS_PENDING).stream()
+                .map(this::enrichWithCurrentMetrics)
+                .toList();
     }
 
     public FaultLog getFaultById(String id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Fault not found with ID: " + id));
+        return enrichWithCurrentMetrics(repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Fault not found with ID: " + id)));
     }
 
     // ====================================
@@ -478,7 +485,7 @@ public class FaultLogService {
                 }
 
                 FaultLog savedFault = repository.save(faultLog);
-                priorityQueueService.applyPriority(savedFault);
+                enrichWithCurrentMetrics(priorityQueueService.applyPriority(savedFault));
                 imported++;
             }
 
@@ -533,6 +540,21 @@ public class FaultLogService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private FaultLog enrichWithCurrentMetrics(FaultLog faultLog) {
+        if (faultLog == null || isBlank(faultLog.getMachineId())) {
+            return faultLog;
+        }
+
+        double mttrMinutes = metricsService.mttrMinutes(faultLog.getMachineId());
+        if (mttrMinutes < 0) {
+            mttrMinutes = metricsService.expectedMttrMinutes(faultLog.getMachineId());
+        }
+
+        faultLog.setCurrentMtbfHours(metricsService.score(metricsService.mtbfHours(faultLog.getMachineId())));
+        faultLog.setCurrentMttrMinutes(metricsService.score(mttrMinutes));
+        return faultLog;
     }
 
     private void validateFaultRequest(FaultDTO dto) {

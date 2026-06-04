@@ -350,6 +350,24 @@ export class FaultAnalysisComponent implements OnInit {
       : 'No Alert';
   }
 
+  mtbfDisplay(item: any): string {
+    const value =
+      item?.currentMtbfHours ??
+      item?.mtbfHours ??
+      item?.expectedMtbf ??
+      0;
+    return `${this.formatMetric(value)}h`;
+  }
+
+  mttrDisplay(item: any): string {
+    const value =
+      item?.currentMttrMinutes ??
+      item?.mttr ??
+      item?.expectedMttr ??
+      0;
+    return `${this.formatMetric(value)}m`;
+  }
+
   isEngineerRaised(item: any): boolean {
     return (
       item?.engineerRaised === true ||
@@ -399,5 +417,13 @@ export class FaultAnalysisComponent implements OnInit {
   private faultIdNumber(faultId: string | undefined): number {
     const match = String(faultId || '').match(/\d+/);
     return match ? Number(match[0]) : 0;
+  }
+
+  private formatMetric(value: unknown): string {
+    const numberValue = Number(value || 0);
+    if (!Number.isFinite(numberValue)) return '0';
+    return Number.isInteger(numberValue)
+      ? `${numberValue}`
+      : numberValue.toFixed(2);
   }
 }

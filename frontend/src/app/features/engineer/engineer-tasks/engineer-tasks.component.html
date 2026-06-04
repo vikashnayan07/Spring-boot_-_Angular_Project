@@ -44,12 +44,12 @@
   </div>
 
   <div *ngIf="!loading && visibleTasks.length > 0" class="engineer-task-grid">
-    <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="col-span-full mb-1 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <p class="enterprise-page-eyebrow">Sort tasks</p>
         <h2 class="enterprise-panel-title">Active Work Orders</h2>
       </div>
-      <div class="flex flex-col gap-3 sm:flex-row">
+      <div class="grid gap-3 sm:grid-cols-[minmax(12rem,16rem)_auto] sm:items-center">
         <select
           [ngModel]="sortKey"
           (ngModelChange)="sortBy($event)"

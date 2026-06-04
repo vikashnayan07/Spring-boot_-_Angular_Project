@@ -1,11 +1,10 @@
 <section class="enterprise-page animate-fade-in-up">
   <header class="enterprise-page-header">
     <div>
-                <th (click)="sortPendingBy('faultId')">Fault ID</th>
-                <th (click)="sortPendingBy('machineId')">Machine ID</th>
-                <th (click)="sortPendingBy('severity')">Severity</th>
-                <th (click)="sortPendingBy('priorityLevel')">Priority</th>
-                <th (click)="sortPendingBy('faultDate')">Fault Date</th>
+      <button type="button" class="back-btn mb-3" (click)="goBack()">
+        <span aria-hidden="true">←</span>
+        <span>{{ backLabel }}</span>
+      </button>
       <h1 class="enterprise-page-title gradient-text">
         Analysis Command Center
       </h1>
@@ -164,8 +163,8 @@
                 <th>Priority Level</th>
                 <th>Priority Score</th>
                 <th>Production Impact</th>
-                <th>MTBF</th>
-                <th>MTTR</th>
+                <th>Current MTBF</th>
+                <th>Current MTTR</th>
                 <th>Logged Time</th>
                 <th>Action</th>
               </tr>
@@ -204,8 +203,8 @@
                   {{ fault.priorityScore || 0 }}
                 </td>
                 <td>{{ fault.productionImpactScore || 0 }}</td>
-                <td>{{ fault.mtbfHours || fault.expectedMtbf || 0 }}h</td>
-                <td>{{ fault.mttr ?? fault.expectedMttr ?? 0 }}m</td>
+                <td>{{ mtbfDisplay(fault) }}</td>
+                <td>{{ mttrDisplay(fault) }}</td>
                 <td>{{ fault.faultDate }} {{ fault.faultTime }}</td>
                 <td>
                   <button
@@ -283,8 +282,8 @@
                 <th (click)="sortCompletedBy('healthScore')">Health Score</th>
                 <th (click)="sortCompletedBy('healthStatus')">Health Status</th>
                 <th (click)="sortCompletedBy('failureTrend')">Failure Trend</th>
-                <th>MTBF</th>
-                <th>MTTR</th>
+                <th>Current MTBF</th>
+                <th>Current MTTR</th>
                 <th>Alert Status</th>
                 <th>Analyzed At</th>
                 <th>Action</th>
@@ -312,8 +311,8 @@
                 </td>
                 <td>{{ analysis.healthStatus || analysis.riskScore }}</td>
                 <td>{{ analysis.failureTrend || "Stable" }}</td>
-                <td>{{ analysis.mtbfHours || 0 }}h</td>
-                <td>{{ analysis.mttr ?? 0 }}m</td>
+                <td>{{ mtbfDisplay(analysis) }}</td>
+                <td>{{ mttrDisplay(analysis) }}</td>
                 <td>
                   <span class="enterprise-status">
                     <span class="enterprise-status-dot"></span>

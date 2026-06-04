@@ -85,16 +85,39 @@ public class FaultAnalysisService {
                 : PriorityQueueService.STATUS_ALERT_GENERATED);
         faultRepo.save(fault);
 
-        return savedAnalysis;
+        return enrichWithCurrentMetrics(savedAnalysis);
     }
 
     public List<FaultAnalysis> getAllAnalyses() {
-        return analysisRepo.findAll();
+        return analysisRepo.findAll().stream()
+                .map(this::enrichWithCurrentMetrics)
+                .toList();
     }
 
     public FaultAnalysis getAnalysisById(Long id) {
-        return analysisRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Analysis not found with ID: " + id));
+        return enrichWithCurrentMetrics(analysisRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Analysis not found with ID: " + id)));
+    }
+
+    private FaultAnalysis enrichWithCurrentMetrics(FaultAnalysis analysis) {
+        if (analysis == null || analysis.getFaultId() == null) {
+            return analysis;
+        }
+
+        faultRepo.findById(analysis.getFaultId()).ifPresent(fault -> {
+            String machineId = fault.getMachineId();
+            analysis.setMachineId(machineId);
+
+            double mttrMinutes = metricsService.mttrMinutes(machineId);
+            if (mttrMinutes < 0) {
+                mttrMinutes = metricsService.expectedMttrMinutes(machineId);
+            }
+
+            analysis.setCurrentMtbfHours(metricsService.score(metricsService.mtbfHours(machineId)));
+            analysis.setCurrentMttrMinutes(metricsService.score(mttrMinutes));
+        });
+
+        return analysis;
     }
 
     private String toLegacyPriority(String priorityLevel) {

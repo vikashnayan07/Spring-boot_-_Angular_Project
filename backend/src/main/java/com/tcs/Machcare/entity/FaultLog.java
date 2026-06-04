@@ -52,6 +52,12 @@ public class FaultLog {
     @Column(name = "analysis_status")
     private String analysisStatus;
 
+    @Transient
+    private BigDecimal currentMtbfHours;
+
+    @Transient
+    private BigDecimal currentMttrMinutes;
+
     public FaultLog() {
     }
 
@@ -90,4 +96,10 @@ public class FaultLog {
 
     public String getAnalysisStatus() { return analysisStatus; }
     public void setAnalysisStatus(String analysisStatus) { this.analysisStatus = analysisStatus; }
+
+    public BigDecimal getCurrentMtbfHours() { return currentMtbfHours; }
+    public void setCurrentMtbfHours(BigDecimal currentMtbfHours) { this.currentMtbfHours = currentMtbfHours; }
+
+    public BigDecimal getCurrentMttrMinutes() { return currentMttrMinutes; }
+    public void setCurrentMttrMinutes(BigDecimal currentMttrMinutes) { this.currentMttrMinutes = currentMttrMinutes; }
 }
