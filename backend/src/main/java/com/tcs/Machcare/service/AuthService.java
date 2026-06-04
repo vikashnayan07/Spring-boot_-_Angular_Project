@@ -46,14 +46,7 @@ public class AuthService {
             }
 
             // 👉 2. UPDATED: Mathematically verify the BCrypt hash instead of plain text!
-            boolean passwordMatches;
-            try {
-                passwordMatches = passwordEncoder.matches(password, login.getPassword());
-            } catch (IllegalArgumentException ex) {
-                passwordMatches = password.equals(login.getPassword());
-            }
-
-            if (passwordMatches) {
+            if (passwordEncoder.matches(password, login.getPassword())) {
                 return Optional.of(emp);
             }
         }
