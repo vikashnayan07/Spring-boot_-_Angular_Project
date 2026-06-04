@@ -36,6 +36,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/machcare/**",
+                                "/admin/**",
+                                "/engineer/**",
+                                "/operator/**",
+                                "/landing",
+                                "/login",
+                                "/setup-account",
+                                "/forgot-password",
+                                "/fault-log",
+                                "/add-fault"
+                        ).permitAll()
                         .requestMatchers(
                                 "/",
                                 "/index.html",

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class SpaFallbackController {
   @RequestMapping({
-    "/{path:^(?!api$|actuator$|v3$|swagger-ui$).*$}",
-    "/{path:^(?!api$|actuator$|v3$|swagger-ui$).*$}/**/{subpath:[^\\.]*}"
+    "/{path:[^\\.]*}",
+    "/**/{path:[^\\.]*}"
   })
   public String forwardToIndex() {
     return "forward:/index.html";
