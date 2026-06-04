@@ -42,9 +42,9 @@ public class AuditLogService {
             auditLog.setRoleId(roleId);
             auditLog.setAction(action);
             auditLog.setStatus(status);
-            auditLog.setMessage(message);
+            auditLog.setMessage(truncate(message, 240));
             auditLog.setCreatedAt(LocalDateTime.now());
-            auditLogRepository.save(auditLog);
+            auditLogRepository.saveAndFlush(auditLog);
         } catch (Exception ignored) {
             // Best-effort observability must never break the business workflow.
         }
@@ -118,5 +118,12 @@ public class AuditLogService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength - 3) + "...";
     }
 }
