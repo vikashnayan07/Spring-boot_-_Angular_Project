@@ -32,13 +32,17 @@
           >
             MachCare
           </div>
-          <div class="hidden text-[0.7rem] font-semibold text-slate-300 sm:block">
+          <div
+            class="hidden text-[0.7rem] font-semibold text-slate-300 sm:block"
+          >
             Industrial Intelligence Platform
           </div>
         </div>
       </a>
 
-      <nav class="landing-desktop-nav hidden items-center justify-center gap-2 md:flex">
+      <nav
+        class="landing-desktop-nav hidden items-center justify-center gap-2 md:flex"
+      >
         <button
           type="button"
           class="rounded-full px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white hover:shadow-[0_0_20px_rgba(59,130,246,0.18)]"
@@ -69,7 +73,9 @@
         </button>
       </nav>
 
-      <div class="landing-desktop-actions hidden items-center justify-end gap-2 md:flex">
+      <div
+        class="landing-desktop-actions hidden items-center justify-end gap-2 md:flex"
+      >
         <button
           type="button"
           class="inline-flex items-center justify-center rounded-full border border-white/12 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(168,85,247,0.22)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_rgba(236,72,153,0.28)]"
@@ -84,7 +90,9 @@
         class="landing-menu-button md:hidden theme-toggle flex h-10 w-10 items-center justify-center rounded-xl border border-white/12 bg-[rgba(15,23,42,0.88)] transition-all duration-200 hover:border-white/20"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="mobileMenuOpen"
-        [attr.aria-label]="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
+        [attr.aria-label]="
+          mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
+        "
       >
         <!-- Menu (hamburger) -->
         <svg
@@ -97,7 +105,11 @@
           stroke-width="2"
           aria-hidden="true"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 7h16M4 12h16M4 17h16"
+          />
         </svg>
 
         <!-- Close (X) -->
@@ -111,7 +123,11 @@
           stroke-width="2"
           aria-hidden="true"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
@@ -149,12 +165,21 @@
         <button type="button" (click)="goToAbout()">About</button>
         <button type="button" (click)="goToServices()">Services</button>
         <button type="button" (click)="goToContact()">Contact</button>
-        <button type="button" class="landing-mobile-login" (click)="goToLogin()">Login</button>
+        <button
+          type="button"
+          class="landing-mobile-login"
+          (click)="goToLogin()"
+        >
+          Login
+        </button>
       </nav>
     </aside>
   </header>
 
-  <div id="home" class="landing-hero-mobile relative min-h-screen overflow-hidden bg-slate-950">
+  <div
+    id="home"
+    class="landing-hero-mobile relative min-h-screen overflow-hidden bg-slate-950"
+  >
     <video
       #heroVideo
       class="absolute inset-0 h-full w-full object-cover opacity-75"
