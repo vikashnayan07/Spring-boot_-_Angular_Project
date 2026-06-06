@@ -1,39 +1,15 @@
-      <button
-        type="button"
-        class="landing-menu-button md:hidden"
-        [class.open]="mobileMenuOpen"
-        (click)="toggleMobileMenu()"
-        [attr.aria-expanded]="mobileMenuOpen"
-        [attr.aria-label]="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
-      >
-        <!-- Menu icon -->
-        <svg
-          *ngIf="!mobileMenuOpen"
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-6 h-6 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
-        </svg>
-
-        <!-- Close icon -->
-        <svg
-          *ngIf="mobileMenuOpen"
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-6 h-6 text-white"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+﻿<section
+  class="relative min-h-screen overflow-x-hidden bg-slate-950 text-white"
+>
+  <header
+    class="fixed inset-x-0 top-0 z-40 border-b border-transparent transition-all duration-500 ease-out"
+    [ngClass]="navbarClass"
+  >
+    <div
+      class="landing-nav-shell mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8"
+    >
+      <a
+        href="#home"
         class="landing-brand flex min-w-0 items-center gap-3 rounded-full px-2 py-1.5 transition hover:bg-white/5 sm:gap-4"
         (click)="closeMobileMenu()"
       >
@@ -143,7 +119,7 @@
           (click)="closeMobileMenu()"
           aria-label="Close navigation menu"
         >
-          ×
+          ├ù
         </button>
       </div>
       <nav class="landing-drawer-links" aria-label="Mobile navigation links">
@@ -160,7 +136,7 @@
     <video
       #heroVideo
       class="absolute inset-0 h-full w-full object-cover opacity-75"
-      src="landing/Create_an_ultra_realistic_–_.mp4"
+      src="landing/Create_an_ultra_realistic_ΓÇô_.mp4"
       autoplay
       muted
       loop
@@ -555,7 +531,7 @@
       <div
         class="mt-14 border-t border-white/10 pt-6 text-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-400"
       >
-        © 2026 MachCare. Vikash Nayan and Team &#10084;&#65039;
+        ┬⌐ 2026 MachCare. Vikash Nayan and Team &#10084;&#65039;
       </div>
     </div>
   </footer>
