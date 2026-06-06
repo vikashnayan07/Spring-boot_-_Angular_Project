@@ -28,7 +28,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm run build'
+                    sh 'npx -y -p node@20.19.0 node ./node_modules/@angular/cli/bin/ng build --configuration production'
                     sh '! grep -R "localhost:9090\\|localhost:8080" dist/angular/browser'
                 }
             }
