@@ -120,6 +120,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   private servicePhraseSwapTimerId?: number;
   private revealObserver?: IntersectionObserver;
   private navbarScrollPending = false;
+  private previousBodyOverflow = '';
 
   @ViewChild('heroVideo') heroVideo?: ElementRef<HTMLVideoElement>;
   @ViewChild('aboutSection') aboutSection?: ElementRef<HTMLElement>;
@@ -221,7 +222,20 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  @HostListener('window:keydown.escape')
+  onEscapeKey(): void {
+    this.closeMobileMenu();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (window.innerWidth >= 768) {
+      this.closeMobileMenu();
+    }
+  }
+
   ngOnDestroy(): void {
+    this.setMobileMenuOpen(false);
     this.revealObserver?.disconnect();
 
     if (this.rotationTimerId) {
@@ -300,11 +314,11 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleMobileMenu(): void {
-    this.mobileMenuOpen = !this.mobileMenuOpen;
+    this.setMobileMenuOpen(!this.mobileMenuOpen);
   }
 
   closeMobileMenu(): void {
-    this.mobileMenuOpen = false;
+    this.setMobileMenuOpen(false);
   }
 
   footerColumnClass(): string {
@@ -388,5 +402,21 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private updateNavbarState(): void {
     this.navbarSolid = window.scrollY > 24;
+  }
+
+  private setMobileMenuOpen(isOpen: boolean): void {
+    if (this.mobileMenuOpen === isOpen) {
+      return;
+    }
+
+    this.mobileMenuOpen = isOpen;
+
+    if (isOpen) {
+      this.previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return;
+    }
+
+    document.body.style.overflow = this.previousBodyOverflow;
   }
 }

@@ -85,6 +85,7 @@
         [class.open]="mobileMenuOpen"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="mobileMenuOpen"
+        aria-controls="landing-mobile-drawer"
         aria-label="Toggle navigation menu"
       >
         <span></span>
@@ -93,18 +94,42 @@
       </button>
     </div>
 
-    <div
-      class="landing-mobile-panel md:hidden"
+    <button
+      type="button"
+      class="landing-menu-backdrop"
       [class.open]="mobileMenuOpen"
+      (click)="closeMobileMenu()"
+      aria-label="Close navigation menu"
+    ></button>
+
+    <aside
+      id="landing-mobile-drawer"
+      class="landing-mobile-drawer"
+      [class.open]="mobileMenuOpen"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile navigation"
+      [attr.aria-hidden]="!mobileMenuOpen"
     >
-      <div class="grid gap-2">
+      <div class="landing-drawer-head">
+        <span>Navigation</span>
+        <button
+          type="button"
+          class="landing-drawer-close"
+          (click)="closeMobileMenu()"
+          aria-label="Close navigation menu"
+        >
+          ×
+        </button>
+      </div>
+      <nav class="landing-drawer-links" aria-label="Mobile navigation links">
         <button type="button" (click)="scrollToSection('home')">Home</button>
         <button type="button" (click)="goToAbout()">About</button>
         <button type="button" (click)="goToServices()">Services</button>
         <button type="button" (click)="goToContact()">Contact</button>
         <button type="button" class="landing-mobile-login" (click)="goToLogin()">Login</button>
-      </div>
-    </div>
+      </nav>
+    </aside>
   </header>
 
   <div id="home" class="landing-hero-mobile relative min-h-screen overflow-hidden bg-slate-950">

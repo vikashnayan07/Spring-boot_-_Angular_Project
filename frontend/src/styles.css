@@ -2504,12 +2504,16 @@ form {
 @keyframes landingMenuIn {
   from {
     opacity: 0;
-    transform: translateY(-0.65rem) scale(0.96);
+    transform: translateX(1.5rem);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
   }
+}
+.landing-menu-backdrop,
+.landing-mobile-drawer {
+  display: none;
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -2531,7 +2535,7 @@ form {
     display: none;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .landing-container {
     width: min(100% - 1rem, 1180px);
   }
@@ -2550,7 +2554,7 @@ form {
 
   .landing-menu-button {
     position: relative;
-    z-index: 50;
+    z-index: 80;
     display: inline-flex !important;
     flex: 0 0 auto;
     width: 2.95rem;
@@ -2565,45 +2569,132 @@ form {
       0 0 28px rgba(34, 211, 238, 0.12);
   }
 
-  .landing-mobile-panel {
-    top: 5rem;
-    left: auto;
-    right: 0.85rem;
-    width: min(18rem, calc(100vw - 1.7rem));
-    transform-origin: top right;
+  .landing-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: block;
+    background: rgba(2, 6, 23, 0.58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .landing-menu-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .landing-mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 70;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    width: min(75vw, 320px);
+    max-width: calc(100vw - 1rem);
+    height: 100dvh;
+    border-left: 1px solid rgba(255, 255, 255, 0.14);
     border-color: rgba(255, 255, 255, 0.16);
     background:
       radial-gradient(circle at 88% 0%, rgba(236, 72, 153, 0.18), transparent 9rem),
       radial-gradient(circle at 0% 100%, rgba(34, 211, 238, 0.14), transparent 10rem),
       rgba(2, 6, 23, 0.96);
     box-shadow:
-      0 24px 70px rgba(2, 6, 23, 0.55),
+      -24px 0 70px rgba(2, 6, 23, 0.55),
       0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(105%);
+    transition:
+      opacity 220ms ease,
+      transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(18px);
   }
 
-  .landing-mobile-panel.open {
-    animation: landingMenuIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  .landing-mobile-drawer.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    animation: landingMenuIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .landing-mobile-panel button {
+  .landing-drawer-head {
     display: flex;
+    min-height: 3.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .landing-drawer-close {
+    display: inline-flex;
+    width: 2.65rem;
+    height: 2.65rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.055);
+    color: #fff;
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+
+  .landing-drawer-links {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding-top: 1.1rem;
+  }
+
+  .landing-drawer-links button {
+    display: flex;
+    min-height: 3.1rem;
     align-items: center;
     justify-content: space-between;
     border: 1px solid transparent;
+    border-radius: 0.95rem;
     background: rgba(255, 255, 255, 0.035);
+    color: rgba(255, 255, 255, 0.88);
+    padding: 0 0.95rem;
+    font-size: 0.95rem;
+    font-weight: 850;
+    letter-spacing: 0;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
   }
 
-  .landing-mobile-panel button::after {
+  .landing-drawer-links button::after {
     content: "\203A";
     color: rgba(255, 255, 255, 0.42);
     font-size: 1.1rem;
     line-height: 1;
   }
 
-  .landing-mobile-panel button:hover,
-  .landing-mobile-panel button:focus-visible {
+  .landing-drawer-close:focus-visible,
+  .landing-drawer-links button:focus-visible,
+  .landing-menu-button:focus-visible {
+    outline: 2px solid rgba(34, 211, 238, 0.85);
+    outline-offset: 3px;
+  }
+
+  .landing-drawer-links button:hover,
+  .landing-drawer-links button:focus-visible {
     border-color: rgba(34, 211, 238, 0.18);
     background: rgba(255, 255, 255, 0.08);
+    transform: translateX(-2px);
   }
 
   .landing-brand {
