@@ -370,44 +370,8 @@ router-outlet + * {
 }
 
 /* Landing page mobile hamburger button (three stacked bars) */
-.landing-menu-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  padding: 0.25rem;
-  border-radius: 0.75rem;
-  background: transparent;
-  color: #fff; /* visible on dark hero */
-  border: 1px solid transparent;
-}
-
-.landing-menu-button span {
-  display: block;
-  width: 1.25rem;
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
-  transition: transform 0.22s ease, opacity 0.18s ease;
-}
-
-.landing-menu-button span + span {
-  margin-top: 0.35rem;
-}
-
-/* Open/close states (matches expected behavior in template) */
-.landing-menu-button.open span:nth-child(1) {
-  transform: translateY(6px) rotate(45deg);
-}
-
-.landing-menu-button.open span:nth-child(2) {
-  opacity: 0;
-}
-
-.landing-menu-button.open span:nth-child(3) {
-  transform: translateY(-6px) rotate(-45deg);
-}
+/* Landing menu button base styles are defined further in this file
+   (retained for sizing, focus state and visual treatment). */
 
 .sidebar-collapsed .sidebar-collapse-btn span:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
