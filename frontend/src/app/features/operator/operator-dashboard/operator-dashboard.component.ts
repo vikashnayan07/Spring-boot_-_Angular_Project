@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 @Component({
   selector: 'app-operator-dashboard',
@@ -23,12 +24,26 @@ export class OperatorDashboardComponent implements OnInit {
     machineWarrantyExpired: 0,
   };
   machines: any[] = [];
+  private realtimeSub?: Subscription;
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private realtimeService: RealtimeService,
+  ) {}
 
   ngOnInit() {
     this.operatorName = localStorage.getItem('name') || 'Operator';
     this.loadMachineStats();
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (['faults_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
+        this.loadMachineStats();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   loadMachineStats() {

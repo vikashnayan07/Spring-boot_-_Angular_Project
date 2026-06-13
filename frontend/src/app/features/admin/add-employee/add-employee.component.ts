@@ -13,6 +13,8 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { buildPagination, PaginationItem } from '../../../shared/utils/pagination';
+import { Subscription } from 'rxjs';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 export function ageValidator(minAge: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -70,11 +72,13 @@ export class AddEmployeeComponent implements OnInit {
   errorMsg = '';
   pendingDeleteId: number | null = null;
   pendingSuspend: { empId: number; days: number } | null = null;
+  private realtimeSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private api: ApiService,
     private toastService: ToastService,
+    private realtimeService: RealtimeService,
   ) {
     this.empForm = this.fb.group({
       name: [
@@ -102,6 +106,16 @@ export class AddEmployeeComponent implements OnInit {
     this.loadEmployees();
     this.searchControl.valueChanges.subscribe(() => this.filterEmployees());
     this.roleFilter.valueChanges.subscribe(() => this.filterEmployees());
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (event.type === 'employees_updated') {
+        this.loadEmployees();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   get f() {
@@ -258,10 +272,10 @@ export class AddEmployeeComponent implements OnInit {
 
   disableEmployee(empId: number, daysString: string): void {
     const days = parseInt(daysString, 10);
-    if (Number.isNaN(days) || days <= 0) {
+    if (Number.isNaN(days) || days < 1 || days > 365) {
       this.toastService.warning(
         'Invalid duration',
-        'Enter a valid suspension duration.',
+        'Suspension duration must be between 1 and 365 days.',
       );
       return;
     }
@@ -289,7 +303,31 @@ export class AddEmployeeComponent implements OnInit {
   }
 
   deleteEmployee(empId: number): void {
+    const target = this.employees.find((emp) => Number(emp.empId) === Number(empId));
+    const currentEmpId = Number(localStorage.getItem('empId'));
+    if (Number(empId) === currentEmpId) {
+      this.toastService.warning('Action blocked', 'You cannot delete your own account.');
+      return;
+    }
+    if (target && this.isMasterAdmin(target)) {
+      this.toastService.warning('Action blocked', 'Master Admin accounts cannot be deleted.');
+      return;
+    }
     this.pendingDeleteId = empId;
+  }
+
+  revokeSuspension(empId: number): void {
+    this.api.revokeSuspension(empId).subscribe({
+      next: (res) => {
+        this.toastService.success('Suspension revoked', res?.message || 'Account restored.');
+        this.loadEmployees();
+      },
+      error: (err) =>
+        this.toastService.error(
+          'Revoke failed',
+          err.error?.message || 'Failed to revoke suspension.',
+        ),
+    });
   }
 
   confirmDelete(): void {
@@ -340,6 +378,10 @@ export class AddEmployeeComponent implements OnInit {
       return 'Maintenance Engineer';
     if (raw.includes('admin') || Number(emp.roleId) === 1) return 'Admin';
     return 'Employee';
+  }
+
+  isMasterAdmin(emp: any): boolean {
+    return Number(emp?.roleId) === 1 || this.roleLabel(emp) === 'Admin';
   }
 
   private sortEmployees(list: any[]): any[] {

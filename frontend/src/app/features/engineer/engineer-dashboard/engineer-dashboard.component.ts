@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { EngineerService } from '../../../core/services/engineer.service';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 @Component({
   selector: 'app-engineer-dashboard',
@@ -26,12 +27,26 @@ export class EngineerDashboardComponent implements OnInit {
     partsExpired: 0,
     replacementRequired: 0,
   };
+  private realtimeSub?: Subscription;
 
-  constructor(private engineerService: EngineerService) {}
+  constructor(
+    private engineerService: EngineerService,
+    private realtimeService: RealtimeService,
+  ) {}
 
   ngOnInit(): void {
     this.engineerName = localStorage.getItem('name') || 'Engineer';
     this.loadDashboard();
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (['tasks_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
+        this.loadDashboard();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   loadDashboard(): void {

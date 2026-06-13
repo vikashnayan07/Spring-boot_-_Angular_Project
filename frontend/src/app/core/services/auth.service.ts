@@ -43,6 +43,9 @@ export class AuthService {
         if (res.success && res.token) {
           // 1. Save credentials safely to localStorage
           localStorage.setItem('token', res.token);
+          if (res.empId !== undefined && res.empId !== null) {
+            localStorage.setItem('empId', String(res.empId));
+          }
           localStorage.setItem('roleId', res.roleId.toString());
 
           // 2. Reset profile state so it fetches fresh data on the next page load

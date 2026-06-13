@@ -47,6 +47,10 @@ export class ApiService {
     );
   }
 
+  revokeSuspension(empId: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/admin/employees/${empId}/revoke-suspension`, {});
+  }
+
   // ==========================================
   // AUTHENTICATION
   // ==========================================

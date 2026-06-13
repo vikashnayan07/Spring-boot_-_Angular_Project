@@ -13,6 +13,7 @@ import com.tcs.Machcare.entity.Employee;
 import com.tcs.Machcare.entity.MaintenanceSchedule;
 import com.tcs.Machcare.entity.Part;
 import com.tcs.Machcare.entity.PartUsage;
+import com.tcs.Machcare.entity.RoleType;
 import com.tcs.Machcare.exception.CsvValidationException;
 import com.tcs.Machcare.exception.InventoryException;
 import com.tcs.Machcare.repository.EmployeeRepository;
@@ -25,6 +26,8 @@ import com.tcs.Machcare.service.AuditLogService;
 import com.tcs.Machcare.service.AssetLifecycleService;
 import com.tcs.Machcare.service.MachCareCoreService;
 import com.tcs.Machcare.service.FaultLogService;
+import com.tcs.Machcare.service.NotificationService;
+import com.tcs.Machcare.service.RealtimeEventService;
 import com.tcs.Machcare.repository.MachineAlertRepository;
 import com.tcs.Machcare.repository.FaultAnalysisRepository;
 import com.tcs.Machcare.repository.FaultLogRepository;
@@ -69,6 +72,8 @@ public class AdminController {
     @Autowired private PartUsageRepository partUsageRepository;
     @Autowired private AuditLogService auditLogService;
     @Autowired private AssetLifecycleService assetLifecycleService;
+    @Autowired private NotificationService notificationService;
+    @Autowired private RealtimeEventService realtimeEventService;
     
     // NEW: Added FaultLogService
     @Autowired private FaultLogService faultService; 
@@ -499,16 +504,36 @@ public class AdminController {
                 .body(Map.of("success", false, "message", "ACCESS DENIED: Only Admins can delete employees."));
         }
 
-        if (!empRepo.existsById(empId)) {
+        Long requesterEmpId = jwtUtil.extractEmpId(token);
+        Employee employee = empRepo.findById(empId).orElse(null);
+        if (employee == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("success", false, "message", "Employee not found."));
         }
 
-        Employee employee = empRepo.findById(empId)
-                .orElseThrow(() -> new IllegalStateException("Employee not found."));
+        if (empId.equals(requesterEmpId) && employee.isActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("success", false, "message", "You cannot delete your own account."));
+        }
+
+        if (Integer.valueOf(1).equals(employee.getRoleId()) || RoleType.Admin.equals(employee.getRoleName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("success", false, "message", "Master Admin accounts cannot be deleted."));
+        }
+
         employee.setActive(false);
         employee.setSuspensionEndDate(null);
         empRepo.save(employee);
+        notificationService.notifyUser(
+                empId,
+                "Account deactivated",
+                "Your account has been deactivated by an administrator.",
+                "Account security",
+                "High",
+                "EMPLOYEE",
+                String.valueOf(empId));
+        realtimeEventService.emitToRole(1, "employees_updated", Map.of("empId", empId, "action", "deactivated"));
+        realtimeEventService.emitToUser(empId, "session_status_updated", Map.of("active", false));
 
         Employee admin = empRepo.findById(jwtUtil.extractEmpId(token)).orElse(null);
         auditLogService.logActivity(
@@ -543,11 +568,59 @@ public class AdminController {
                 .body(Map.of("success", false, "message", "ACCESS DENIED: Only Admins can disable accounts."));
         }
 
+        if (days < 1 || days > 365) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("success", false, "message", "Suspension duration must be between 1 and 365 days."));
+        }
+
         authService.disableAccount(empId, days);
+        notificationService.notifyUser(
+                empId,
+                "Account suspended",
+                "Your account has been suspended for " + days + " day(s).",
+                "Suspension",
+                "High",
+                "EMPLOYEE",
+                String.valueOf(empId));
+        realtimeEventService.emitToRole(1, "employees_updated", Map.of("empId", empId, "action", "suspended"));
+        realtimeEventService.emitToUser(empId, "suspension_updated", Map.of("active", false, "days", days));
         
         return ResponseEntity.ok(Map.of(
             "success", true, 
             "message", "Account suspended for " + days + " days"
+        ));
+    }
+
+    @PutMapping("/employees/{empId}/revoke-suspension")
+    public ResponseEntity<?> revokeSuspension(
+            @PathVariable Long empId,
+            @RequestHeader("Authorization") String token) {
+
+        if (jwtUtil.extractRoleId(token) != 1) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("success", false, "message", "ACCESS DENIED: Only Admins can revoke suspensions."));
+        }
+
+        Employee employee = empRepo.findById(empId)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found."));
+        employee.setActive(true);
+        employee.setSuspensionEndDate(null);
+        empRepo.save(employee);
+
+        notificationService.notifyUser(
+                empId,
+                "Suspension revoked",
+                "Your suspension has been revoked. Login access is restored.",
+                "Suspension",
+                "Info",
+                "EMPLOYEE",
+                String.valueOf(empId));
+        realtimeEventService.emitToRole(1, "employees_updated", Map.of("empId", empId, "action", "revoked"));
+        realtimeEventService.emitToUser(empId, "suspension_updated", Map.of("active", true));
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Suspension revoked and account restored."
         ));
     }
     

@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AlertService } from '../../../core/services/alert-service';
 import { ScheduleService } from '../../../core/services/schedule.service';
 import { HistoryService } from '../../../core/services/history-service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { buildPagination, PaginationItem } from '../../../shared/utils/pagination';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 @Component({
   selector: 'app-maintenance-dashboard',
@@ -59,6 +60,7 @@ export class MaintenanceLandingComponent implements OnInit {
   historySortDirection: 'asc' | 'desc' = 'desc';
   selectedHistory: any | null = null;
   pendingAssignAlert: any | null = null;
+  private realtimeSub?: Subscription;
 
   alerts: any[] = [];
   schedules: any[] = [];
@@ -70,6 +72,7 @@ export class MaintenanceLandingComponent implements OnInit {
     private scheduleService: ScheduleService,
     private historyService: HistoryService,
     private toastService: ToastService,
+    private realtimeService: RealtimeService,
   ) {}
 
   ngOnInit(): void {
@@ -92,6 +95,16 @@ export class MaintenanceLandingComponent implements OnInit {
           : 'Back to Admin Dashboard';
 
     this.loadCommandCenter();
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (['maintenance_updated', 'alerts_updated', 'faults_updated', 'tasks_updated'].includes(event.type)) {
+        this.loadCommandCenter();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   goBack(): void {

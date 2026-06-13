@@ -313,14 +313,20 @@ public class FaultLogService {
     private final FaultLogRepository repository;
     private final PriorityQueueService priorityQueueService;
     private final MachineMetricsService metricsService;
+    private final NotificationService notificationService;
+    private final RealtimeEventService realtimeEventService;
 
     public FaultLogService(
             FaultLogRepository repository,
             PriorityQueueService priorityQueueService,
-            MachineMetricsService metricsService) {
+            MachineMetricsService metricsService,
+            NotificationService notificationService,
+            RealtimeEventService realtimeEventService) {
         this.repository = repository;
         this.priorityQueueService = priorityQueueService;
         this.metricsService = metricsService;
+        this.notificationService = notificationService;
+        this.realtimeEventService = realtimeEventService;
     }
 
     private synchronized String generateFaultId() {
@@ -381,7 +387,19 @@ public class FaultLogService {
         faultLog.setFaultTime(LocalTime.now().withNano(0));
 
         FaultLog savedFault = repository.save(faultLog);
-        return enrichWithCurrentMetrics(priorityQueueService.applyPriority(savedFault));
+        FaultLog prioritized = enrichWithCurrentMetrics(priorityQueueService.applyPriority(savedFault));
+        notificationService.notifyRole(
+                1,
+                "Fault logged",
+                prioritized.getSeverity() + " fault logged for machine " + prioritized.getMachineId(),
+                "Fault",
+                String.valueOf(prioritized.getSeverity()),
+                "FAULT",
+                prioritized.getFaultId());
+        realtimeEventService.emitToRole(1, "faults_updated", prioritized);
+        realtimeEventService.emitToRole(1, "maintenance_updated", prioritized);
+        realtimeEventService.emitToRole(2, "faults_updated", prioritized);
+        return prioritized;
     }
 
     public List<FaultLog> getAllFaultLogs() {

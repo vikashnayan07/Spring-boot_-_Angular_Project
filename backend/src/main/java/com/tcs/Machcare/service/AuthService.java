@@ -82,6 +82,9 @@ public class AuthService {
     }
 
     public void disableAccount(Long empId, int days) {
+        if (days < 1 || days > 365) {
+            throw new IllegalArgumentException("Suspension duration must be between 1 and 365 days.");
+        }
         Employee emp = empRepo.findById(empId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
         emp.setActive(false);

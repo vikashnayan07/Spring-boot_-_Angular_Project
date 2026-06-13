@@ -161,6 +161,9 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
 
         localStorage.setItem('token', res.token);
+        if (res.empId !== undefined && res.empId !== null) {
+          localStorage.setItem('empId', String(res.empId));
+        }
         if (res.name) {
           localStorage.setItem('name', res.name);
         }

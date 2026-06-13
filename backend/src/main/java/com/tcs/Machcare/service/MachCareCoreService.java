@@ -52,6 +52,8 @@ public class MachCareCoreService {
     @Autowired private RaiseRequestRepository raiseRequestRepo;
     @Autowired private FaultLogService faultLogService;
     @Autowired private AssetLifecycleService assetLifecycleService;
+    @Autowired private NotificationService notificationService;
+    @Autowired private RealtimeEventService realtimeEventService;
 
     // ==========================================
     // 1. ADMIN DASHBOARD
@@ -221,6 +223,17 @@ public class MachCareCoreService {
             throw new IllegalArgumentException("Alert not generated because this analysis does not meet risk conditions.");
         }
 
+        notificationService.notifyRole(
+                1,
+                "Critical maintenance alert",
+                "New " + generatedAlert.getAlertPriority() + " alert created for machine " + generatedAlert.getMachineId(),
+                "Critical alert",
+                String.valueOf(generatedAlert.getSeverity()),
+                "ALERT",
+                String.valueOf(generatedAlert.getAlertId()));
+        realtimeEventService.emitToRole(1, "maintenance_updated", generatedAlert);
+        realtimeEventService.emitToRole(1, "alerts_updated", generatedAlert);
+
         return generatedAlert;
     }
 
@@ -259,6 +272,25 @@ public class MachCareCoreService {
                 "Work order created and assigned to engineer.",
                 false
         );
+
+        notificationService.notifyUser(
+                bestEngineerId,
+                "New work order assigned",
+                "WO-" + savedSchedule.getScheduleId() + " assigned for machine " + savedSchedule.getMachineId(),
+                "Task assigned",
+                "High",
+                "SCHEDULE",
+                String.valueOf(savedSchedule.getScheduleId()));
+        notificationService.notifyRole(
+                1,
+                "Work order assigned",
+                "WO-" + savedSchedule.getScheduleId() + " assigned to engineer EMP-" + bestEngineerId,
+                "Task assigned",
+                "Info",
+                "SCHEDULE",
+                String.valueOf(savedSchedule.getScheduleId()));
+        realtimeEventService.emitToUser(bestEngineerId, "tasks_updated", savedSchedule);
+        realtimeEventService.emitToRole(1, "maintenance_updated", savedSchedule);
 
         return savedSchedule;
     }
@@ -382,6 +414,16 @@ public class MachCareCoreService {
         dto.setSeverity(request.getSeverity());
 
         FaultLog raisedFault = faultLogService.createFault(dto, loggedInEmpId, engineerName);
+        notificationService.notifyRole(
+                1,
+                "Engineer raised fault",
+                engineerName + " raised " + request.getSeverity() + " fault for machine " + schedule.getMachineId(),
+                "Critical fault",
+                request.getSeverity(),
+                "FAULT",
+                raisedFault.getFaultId());
+        realtimeEventService.emitToRole(1, "maintenance_updated", raisedFault);
+        realtimeEventService.emitToRole(1, "faults_updated", raisedFault);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -445,6 +487,15 @@ public class MachCareCoreService {
             alert.setEmpId(null);
             MachineAlert savedAlert = alertRepo.save(alert);
             alertIds.add(savedAlert.getAlertId());
+            notificationService.notifyRole(
+                    1,
+                    "Support escalation",
+                    "Engineer " + engineer.getName() + " requested support for machine " + schedule.getMachineId(),
+                    "Support request",
+                    urgency,
+                    "ALERT",
+                    String.valueOf(savedAlert.getAlertId()));
+            realtimeEventService.emitToRole(1, "maintenance_updated", savedAlert);
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -482,6 +533,16 @@ public class MachCareCoreService {
         );
 
         linkPartUsageToHistory(scheduleId, savedHistory.getHistoryId());
+        notificationService.notifyRole(
+                1,
+                "Work order status updated",
+                "WO-" + scheduleId + " moved to " + newStatus.name(),
+                newStatus == MaintenanceStatus.Completed ? "Task completed" : "Maintenance update",
+                newStatus == MaintenanceStatus.Completed ? "Info" : "Medium",
+                "SCHEDULE",
+                String.valueOf(scheduleId));
+        realtimeEventService.emitToRole(1, "maintenance_updated", schedule);
+        realtimeEventService.emitToUser(loggedInEmpId, "tasks_updated", schedule);
     }
 
     @Transactional

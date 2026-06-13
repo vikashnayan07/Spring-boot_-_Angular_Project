@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
+import { Subscription } from 'rxjs';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -34,15 +36,27 @@ export class AdminDashboardComponent implements OnInit {
   adminName = '';
 
   activeLifecycleDrilldown = '';
+  private realtimeSub?: Subscription;
 
   constructor(
     private api: ApiService,
     private router: Router,
+    private realtimeService: RealtimeService,
   ) {}
 
   ngOnInit() {
     this.adminName = localStorage.getItem('name') || 'Admin';
     this.loadRealTimeData();
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (['maintenance_updated', 'alerts_updated', 'faults_updated', 'tasks_updated', 'employees_updated'].includes(event.type)) {
+        this.loadRealTimeData();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   // 👉 Fetches data from existing APIs and calculates the KPIs

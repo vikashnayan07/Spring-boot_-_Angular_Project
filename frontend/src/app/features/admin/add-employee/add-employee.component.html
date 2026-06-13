@@ -143,6 +143,8 @@
                     #suspendDays
                     value="7"
                     min="1"
+                    max="365"
+                    step="1"
                     class="input !h-9 !min-h-0 !w-20 !pl-3 text-xs"
                     aria-label="Suspension days"
                   />
@@ -155,8 +157,18 @@
                   </button>
                   <button
                     type="button"
+                    class="task-action-btn action-complete !px-3 !py-2 text-xs"
+                    *ngIf="!isActive(emp)"
+                    (click)="revokeSuspension(emp.empId)"
+                  >
+                    Revoke Suspension
+                  </button>
+                  <button
+                    type="button"
                     class="task-action-btn action-danger !px-3 !py-2 text-xs"
                     (click)="deleteEmployee(emp.empId)"
+                    [disabled]="isMasterAdmin(emp)"
+                    [title]="isMasterAdmin(emp) ? 'Master Admin accounts cannot be deleted' : 'Deactivate employee'"
                   >
                     Deactivate
                   </button>

@@ -51,6 +51,7 @@ public class AuthController {
                     return ResponseEntity.ok(Map.of(
                         "success", true,
                         "token", token,
+                        "empId", user.getEmpId(),
                         "roleId", user.getRoleId(),
                         "name", user.getName(),
                         "isFirstLogin", user.getIsFirstLogin() != null ? user.getIsFirstLogin() : false,

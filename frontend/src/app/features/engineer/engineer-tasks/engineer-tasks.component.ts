@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { EngineerService } from '../../../core/services/engineer.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { InventoryItem } from '../../inventory/inventory.model';
 import { buildPagination, PaginationItem } from '../../../shared/utils/pagination';
+import { RealtimeService } from '../../../core/services/realtime.service';
 
 type TaskAction = 'start' | 'progress' | 'complete' | 'parts';
 
@@ -36,18 +37,30 @@ export class EngineerTasksComponent implements OnInit {
   rowsPerPage = 6;
   sortKey: 'scheduleId' | 'machineId' | 'status' | 'scheduleDate' = 'scheduleId';
   sortDirection: 'asc' | 'desc' = 'desc';
+  private realtimeSub?: Subscription;
 
   constructor(
     private engineerService: EngineerService,
     private toastService: ToastService,
     private inventoryService: InventoryService,
     private router: Router,
+    private realtimeService: RealtimeService,
   ) {}
 
   ngOnInit(): void {
     this.backRoute = '/engineer/dashboard';
     this.backLabel = 'Back to Dashboard';
     this.loadMyTasks();
+    this.realtimeService.connect();
+    this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (['tasks_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
+        this.loadMyTasks();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   goBack(): void {
