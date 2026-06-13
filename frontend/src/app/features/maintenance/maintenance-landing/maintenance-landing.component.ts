@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin, interval, of, Subscription } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AlertService } from '../../../core/services/alert-service';
 import { ScheduleService } from '../../../core/services/schedule.service';
@@ -61,7 +61,6 @@ export class MaintenanceLandingComponent implements OnInit {
   selectedHistory: any | null = null;
   pendingAssignAlert: any | null = null;
   private realtimeSub?: Subscription;
-  private refreshFallbackSub?: Subscription;
 
   alerts: any[] = [];
   schedules: any[] = [];
@@ -99,27 +98,23 @@ export class MaintenanceLandingComponent implements OnInit {
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
       if (['maintenance_updated', 'alerts_updated', 'faults_updated', 'tasks_updated'].includes(event.type)) {
-        this.loadCommandCenter();
-      }
-    });
-    this.refreshFallbackSub = interval(10000).subscribe(() => {
-      if (!this.loading && !this.assigningAlertId) {
-        this.loadCommandCenter();
+        this.loadCommandCenter(true);
       }
     });
   }
 
   ngOnDestroy(): void {
     this.realtimeSub?.unsubscribe();
-    this.refreshFallbackSub?.unsubscribe();
   }
 
   goBack(): void {
     this.router.navigateByUrl(this.backRoute);
   }
 
-  loadCommandCenter(): void {
-    this.loading = true;
+  loadCommandCenter(silent = false): void {
+    if (!silent) {
+      this.loading = true;
+    }
     this.loadError = '';
 
     forkJoin({
@@ -135,7 +130,11 @@ export class MaintenanceLandingComponent implements OnInit {
         .getAllHistory()
         .pipe(catchError(() => of({ data: [] }))),
     })
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => {
+        if (!silent) {
+          this.loading = false;
+        }
+      }))
       .subscribe({
         next: ({ alerts, schedules, history }: any) => {
           this.alerts = this.unwrap(alerts).filter(

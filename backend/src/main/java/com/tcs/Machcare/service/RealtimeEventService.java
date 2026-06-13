@@ -2,6 +2,8 @@ package com.tcs.Machcare.service;
 
 import com.tcs.Machcare.dto.RealtimeEvent;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -47,15 +49,30 @@ public class RealtimeEventService {
     }
 
     public void emitToUser(Long empId, String type, Object payload) {
-        emit(userEmitters.get(empId), new RealtimeEvent(type, payload));
+        emitAfterCommit(() -> emit(userEmitters.get(empId), new RealtimeEvent(type, payload)));
     }
 
     public void emitToRole(Integer roleId, String type, Object payload) {
-        emit(roleEmitters.get(roleId), new RealtimeEvent(type, payload));
+        emitAfterCommit(() -> emit(roleEmitters.get(roleId), new RealtimeEvent(type, payload)));
     }
 
     public void emitToEveryone(String type, Object payload) {
-        roleEmitters.keySet().forEach(roleId -> emitToRole(roleId, type, payload));
+        emitAfterCommit(() -> roleEmitters.keySet()
+                .forEach(roleId -> emit(roleEmitters.get(roleId), new RealtimeEvent(type, payload))));
+    }
+
+    private void emitAfterCommit(Runnable emitterAction) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            emitterAction.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                emitterAction.run();
+            }
+        });
     }
 
     private void emit(List<SseEmitter> emitters, RealtimeEvent event) {

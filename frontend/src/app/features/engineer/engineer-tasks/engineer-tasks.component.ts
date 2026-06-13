@@ -54,7 +54,7 @@ export class EngineerTasksComponent implements OnInit {
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
       if (['tasks_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
-        this.loadMyTasks();
+        this.loadMyTasks(true);
       }
     });
   }
@@ -103,8 +103,10 @@ export class EngineerTasksComponent implements OnInit {
     }
   }
 
-  loadMyTasks(): void {
-    this.loading = true;
+  loadMyTasks(silent = false): void {
+    if (!silent) {
+      this.loading = true;
+    }
 
     forkJoin({
       tasks: this.engineerService
@@ -112,7 +114,11 @@ export class EngineerTasksComponent implements OnInit {
         .pipe(catchError(() => of({ data: [] }))),
       parts: this.inventoryService.getAllParts().pipe(catchError(() => of([]))),
     })
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => {
+        if (!silent) {
+          this.loading = false;
+        }
+      }))
       .subscribe({
         next: ({ tasks, parts }: any) => {
           this.tasks = tasks.data || tasks.tasks || [];

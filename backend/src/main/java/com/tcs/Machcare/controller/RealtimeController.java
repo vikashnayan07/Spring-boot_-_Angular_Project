@@ -3,6 +3,7 @@ package com.tcs.Machcare.controller;
 import com.tcs.Machcare.service.RealtimeEventService;
 import com.tcs.Machcare.util.Jwtutil;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -18,7 +19,7 @@ public class RealtimeController {
         this.jwtUtil = jwtUtil;
     }
 
-    @GetMapping("/stream")
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@RequestParam("token") String token, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Connection", "keep-alive");
