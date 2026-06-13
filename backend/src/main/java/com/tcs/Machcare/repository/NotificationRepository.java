@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findTop50ByRecipientEmpIdOrRecipientRoleIdOrderByCreatedAtDesc(Long empId, Integer roleId);
+    List<Notification> findTop50ByRecipientEmpIdOrderByCreatedAtDesc(Long empId);
     long countByRecipientEmpIdAndReadFalse(Long empId);
     long countByRecipientRoleIdAndReadFalse(Integer roleId);
     Optional<Notification> findByRecipientEmpIdAndReferenceTypeAndReferenceIdAndCategory(

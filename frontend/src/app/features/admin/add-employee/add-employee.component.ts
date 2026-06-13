@@ -271,6 +271,17 @@ export class AddEmployeeComponent implements OnInit {
   }
 
   disableEmployee(empId: number, daysString: string): void {
+    const target = this.employees.find((emp) => Number(emp.empId) === Number(empId));
+    const currentEmpId = Number(localStorage.getItem('empId'));
+    if (Number(empId) === currentEmpId) {
+      this.toastService.warning('Action blocked', 'You cannot suspend your own active admin account.');
+      return;
+    }
+    if (target && this.isMasterAdmin(target)) {
+      this.toastService.warning('Action blocked', 'Admin accounts cannot be suspended.');
+      return;
+    }
+
     const days = parseInt(daysString, 10);
     if (Number.isNaN(days) || days < 1 || days > 365) {
       this.toastService.warning(
@@ -382,6 +393,10 @@ export class AddEmployeeComponent implements OnInit {
 
   isMasterAdmin(emp: any): boolean {
     return Number(emp?.roleId) === 1 || this.roleLabel(emp) === 'Admin';
+  }
+
+  isCurrentUser(emp: any): boolean {
+    return Number(emp?.empId) === Number(localStorage.getItem('empId'));
   }
 
   private sortEmployees(list: any[]): any[] {

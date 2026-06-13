@@ -87,6 +87,9 @@ public class AuthService {
         }
         Employee emp = empRepo.findById(empId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        if (Integer.valueOf(1).equals(emp.getRoleId())) {
+            throw new IllegalArgumentException("Admin accounts cannot be suspended.");
+        }
         emp.setActive(false);
         emp.setSuspensionEndDate(LocalDateTime.now().plusDays(days));
         empRepo.save(emp);

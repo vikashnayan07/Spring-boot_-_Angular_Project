@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { forkJoin, interval, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AlertService } from '../../../core/services/alert-service';
 import { ScheduleService } from '../../../core/services/schedule.service';
@@ -61,6 +61,7 @@ export class MaintenanceLandingComponent implements OnInit {
   selectedHistory: any | null = null;
   pendingAssignAlert: any | null = null;
   private realtimeSub?: Subscription;
+  private refreshFallbackSub?: Subscription;
 
   alerts: any[] = [];
   schedules: any[] = [];
@@ -101,10 +102,16 @@ export class MaintenanceLandingComponent implements OnInit {
         this.loadCommandCenter();
       }
     });
+    this.refreshFallbackSub = interval(10000).subscribe(() => {
+      if (!this.loading && !this.assigningAlertId) {
+        this.loadCommandCenter();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.realtimeSub?.unsubscribe();
+    this.refreshFallbackSub?.unsubscribe();
   }
 
   goBack(): void {

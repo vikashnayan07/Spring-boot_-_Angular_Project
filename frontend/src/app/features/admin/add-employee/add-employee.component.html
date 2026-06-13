@@ -152,6 +152,8 @@
                     type="button"
                     class="task-action-btn action-progress !px-3 !py-2 text-xs"
                     (click)="disableEmployee(emp.empId, suspendDays.value)"
+                    [disabled]="isMasterAdmin(emp) || isCurrentUser(emp)"
+                    [title]="isMasterAdmin(emp) || isCurrentUser(emp) ? 'Admin accounts cannot be suspended' : 'Suspend employee'"
                   >
                     Suspend
                   </button>
@@ -167,8 +169,8 @@
                     type="button"
                     class="task-action-btn action-danger !px-3 !py-2 text-xs"
                     (click)="deleteEmployee(emp.empId)"
-                    [disabled]="isMasterAdmin(emp)"
-                    [title]="isMasterAdmin(emp) ? 'Master Admin accounts cannot be deleted' : 'Deactivate employee'"
+                    [disabled]="isMasterAdmin(emp) || isCurrentUser(emp)"
+                    [title]="isMasterAdmin(emp) || isCurrentUser(emp) ? 'Admin/self accounts cannot be deactivated' : 'Deactivate employee'"
                   >
                     Deactivate
                   </button>

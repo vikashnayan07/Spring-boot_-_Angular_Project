@@ -316,7 +316,9 @@ public class MachCareCoreService {
         int minTasks = Integer.MAX_VALUE;
 
         for (Employee eng : engineers) {
-            ensureAssignableEngineer(eng);
+            if (!isAssignableEngineer(eng)) {
+                continue;
+            }
             int activeTasks = scheduleRepo.countByEmpIdAndStatusNot(eng.getEmpId(), MaintenanceStatus.Completed);
             
             if (activeTasks < minTasks) {
@@ -324,13 +326,23 @@ public class MachCareCoreService {
                 bestEngineerId = eng.getEmpId();
             }
         }
+        if (bestEngineerId == null) {
+            throw new RuntimeException("Task cannot be assigned because no active non-suspended engineer is available.");
+        }
         return bestEngineerId;
     }
 
     private void ensureAssignableEngineer(Employee engineer) {
-        if (engineer == null || !engineer.isActive() || engineer.getSuspensionEndDate() != null) {
+        if (!isAssignableEngineer(engineer)) {
             throw new RuntimeException("Task cannot be assigned to inactive or suspended employee.");
         }
+    }
+
+    private boolean isAssignableEngineer(Employee engineer) {
+        return engineer != null
+                && Integer.valueOf(2).equals(engineer.getRoleId())
+                && engineer.isActive()
+                && engineer.getSuspensionEndDate() == null;
     }
 
     // ==========================================

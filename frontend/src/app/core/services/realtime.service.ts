@@ -11,6 +11,8 @@ export interface RealtimeMessage {
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
   private source: EventSource | null = null;
+  private activeToken: string | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly eventSubject = new Subject<RealtimeMessage>();
   readonly events$ = this.eventSubject.asObservable();
 
@@ -18,15 +20,23 @@ export class RealtimeService {
 
   connect(): void {
     const token = localStorage.getItem('token');
-    if (!token || this.source) {
+    if (!token) {
+      this.disconnect();
       return;
     }
 
+    if (this.source && this.activeToken === token) {
+      return;
+    }
+
+    this.disconnect();
+    this.activeToken = token;
     const streamUrl = `${API_BASE_URL}/realtime/stream?token=${encodeURIComponent(token)}`;
     this.source = new EventSource(streamUrl);
 
     [
       'connected',
+      'heartbeat',
       'notification',
       'notifications_updated',
       'maintenance_updated',
@@ -44,13 +54,18 @@ export class RealtimeService {
 
     this.source.onerror = () => {
       this.disconnect();
-      setTimeout(() => this.connect(), 5000);
+      this.reconnectTimer = setTimeout(() => this.connect(), 3000);
     };
   }
 
   disconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.source?.close();
     this.source = null;
+    this.activeToken = null;
   }
 
   private parseEvent(type: string, event: MessageEvent): RealtimeMessage {

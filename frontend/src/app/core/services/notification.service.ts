@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, interval, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../constants/api.config';
 import { RealtimeService } from './realtime.service';
@@ -26,6 +26,7 @@ export class NotificationService {
   unreadCount$ = this.unreadCountSubject.asObservable();
 
   private channel?: BroadcastChannel;
+  private refreshSub?: Subscription;
 
   constructor(
     private http: HttpClient,
@@ -34,7 +35,8 @@ export class NotificationService {
   ) {
     this.setupCrossTabSync();
     this.realtime.connect();
-    this.fetchNotifications().subscribe();
+    this.refresh().subscribe();
+    this.refreshSub = interval(30000).subscribe(() => this.refresh().subscribe());
     this.realtime.events$.subscribe((event) => {
       if (event.type === 'notification') {
         this.addRealtimeNotification(event.payload);
@@ -50,6 +52,15 @@ export class NotificationService {
 
   getNotifications(): Observable<NotificationItem[]> {
     this.realtime.connect();
+    return this.refresh();
+  }
+
+  refresh(): Observable<NotificationItem[]> {
+    if (!localStorage.getItem('token')) {
+      this.notificationsSubject.next([]);
+      this.unreadCountSubject.next(0);
+      return of([]);
+    }
     return this.fetchNotifications();
   }
 

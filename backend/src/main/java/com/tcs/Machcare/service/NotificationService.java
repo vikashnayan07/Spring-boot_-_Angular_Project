@@ -27,12 +27,11 @@ public class NotificationService {
     }
 
     public List<Notification> listFor(Long empId, Integer roleId) {
-        return notificationRepository.findTop50ByRecipientEmpIdOrRecipientRoleIdOrderByCreatedAtDesc(empId, roleId);
+        return notificationRepository.findTop50ByRecipientEmpIdOrderByCreatedAtDesc(empId);
     }
 
     public long unreadCount(Long empId, Integer roleId) {
-        return notificationRepository.countByRecipientEmpIdAndReadFalse(empId)
-            + notificationRepository.countByRecipientRoleIdAndReadFalse(roleId);
+        return notificationRepository.countByRecipientEmpIdAndReadFalse(empId);
     }
 
     @Transactional
@@ -72,7 +71,7 @@ public class NotificationService {
     public void markRead(Long notificationId, Long empId, Integer roleId) {
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new IllegalArgumentException("Notification not found."));
-        boolean allowed = empId.equals(notification.getRecipientEmpId()) || roleId.equals(notification.getRecipientRoleId());
+        boolean allowed = empId.equals(notification.getRecipientEmpId());
         if (!allowed) {
             throw new IllegalArgumentException("You cannot update this notification.");
         }

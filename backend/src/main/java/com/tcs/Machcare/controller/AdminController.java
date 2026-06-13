@@ -573,6 +573,23 @@ public class AdminController {
                 .body(Map.of("success", false, "message", "Suspension duration must be between 1 and 365 days."));
         }
 
+        Long requesterEmpId = jwtUtil.extractEmpId(token);
+        Employee targetEmployee = empRepo.findById(empId).orElse(null);
+        if (targetEmployee == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("success", false, "message", "Employee not found."));
+        }
+
+        if (empId.equals(requesterEmpId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("success", false, "message", "You cannot suspend your own active admin account."));
+        }
+
+        if (Integer.valueOf(1).equals(targetEmployee.getRoleId()) || RoleType.Admin.equals(targetEmployee.getRoleName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("success", false, "message", "Admin accounts cannot be suspended."));
+        }
+
         authService.disableAccount(empId, days);
         notificationService.notifyUser(
                 empId,

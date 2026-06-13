@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RealtimeEventService {
@@ -16,13 +20,21 @@ public class RealtimeEventService {
 
     private final Map<Long, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
     private final Map<Integer, List<SseEmitter>> roleEmitters = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public SseEmitter connect(Long empId, Integer roleId) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
         userEmitters.computeIfAbsent(empId, ignored -> new CopyOnWriteArrayList<>()).add(emitter);
         roleEmitters.computeIfAbsent(roleId, ignored -> new CopyOnWriteArrayList<>()).add(emitter);
+        ScheduledFuture<?> heartbeat = heartbeatExecutor.scheduleAtFixedRate(
+                () -> sendToEmitter(emitter, new RealtimeEvent("heartbeat", Map.of("empId", empId))),
+                20,
+                20,
+                TimeUnit.SECONDS
+        );
 
         Runnable cleanup = () -> {
+            heartbeat.cancel(true);
             remove(userEmitters, empId, emitter);
             remove(roleEmitters, roleId, emitter);
         };

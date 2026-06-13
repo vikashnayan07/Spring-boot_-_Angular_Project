@@ -91,6 +91,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showNotifications = !this.showNotifications;
     if (this.showNotifications) {
       this.showProfileCard = false;
+      this.notificationService.refresh().subscribe();
     }
   }
 
