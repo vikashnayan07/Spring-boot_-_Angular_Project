@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { forkJoin, interval, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { EngineerService } from '../../../core/services/engineer.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
@@ -28,6 +28,7 @@ export class EngineerDashboardComponent implements OnInit {
     replacementRequired: 0,
   };
   private realtimeSub?: Subscription;
+  private silentSyncSub?: Subscription;
 
   constructor(
     private engineerService: EngineerService,
@@ -39,18 +40,27 @@ export class EngineerDashboardComponent implements OnInit {
     this.loadDashboard();
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (event.type === 'connected' || event.type === 'heartbeat') {
+        this.stopSilentSync();
+      }
+      if (event.type === 'realtime_unavailable') {
+        this.startSilentSync();
+      }
       if (['tasks_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
-        this.loadDashboard();
+        this.loadDashboard(true);
       }
     });
   }
 
   ngOnDestroy(): void {
     this.realtimeSub?.unsubscribe();
+    this.stopSilentSync();
   }
 
-  loadDashboard(): void {
-    this.isLoading = true;
+  loadDashboard(silent = false): void {
+    if (!silent) {
+      this.isLoading = true;
+    }
 
     forkJoin({
       dashboard: this.engineerService
@@ -60,7 +70,11 @@ export class EngineerDashboardComponent implements OnInit {
         .getMyTasks()
         .pipe(catchError(() => of({ data: [] }))),
     })
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(finalize(() => {
+        if (!silent) {
+          this.isLoading = false;
+        }
+      }))
       .subscribe(({ dashboard, tasks }: any) => {
         this.tasks = tasks?.data || tasks?.tasks || [];
         const dashboardData = dashboard?.dashboardData || {};
@@ -141,5 +155,17 @@ export class EngineerDashboardComponent implements OnInit {
     if (normalized === 'EXPIRED')
       return 'bg-red-400/15 text-red-300 border-red-400/20';
     return 'bg-emerald-400/15 text-emerald-300 border-emerald-400/20';
+  }
+
+  private startSilentSync(): void {
+    if (this.silentSyncSub) {
+      return;
+    }
+    this.silentSyncSub = interval(5000).subscribe(() => this.loadDashboard(true));
+  }
+
+  private stopSilentSync(): void {
+    this.silentSyncSub?.unsubscribe();
+    this.silentSyncSub = undefined;
   }
 }

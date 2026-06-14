@@ -68,7 +68,7 @@ export class RealtimeService {
             payload: { transport: 'websocket' },
           }),
         );
-        const delay = Math.min(30000, 3000 * Math.max(1, ++this.reconnectAttempts));
+        const delay = Math.min(120000, 30000 * Math.max(1, ++this.reconnectAttempts));
         this.reconnectTimer = setTimeout(() => this.connectWebSocket(token), delay);
       }
     };

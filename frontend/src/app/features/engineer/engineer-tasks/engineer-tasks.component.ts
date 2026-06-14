@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { forkJoin, interval, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { EngineerService } from '../../../core/services/engineer.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
@@ -38,6 +38,7 @@ export class EngineerTasksComponent implements OnInit {
   sortKey: 'scheduleId' | 'machineId' | 'status' | 'scheduleDate' = 'scheduleId';
   sortDirection: 'asc' | 'desc' = 'desc';
   private realtimeSub?: Subscription;
+  private silentSyncSub?: Subscription;
 
   constructor(
     private engineerService: EngineerService,
@@ -53,6 +54,12 @@ export class EngineerTasksComponent implements OnInit {
     this.loadMyTasks();
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (event.type === 'connected' || event.type === 'heartbeat') {
+        this.stopSilentSync();
+      }
+      if (event.type === 'realtime_unavailable') {
+        this.startSilentSync();
+      }
       if (['tasks_updated', 'maintenance_updated', 'suspension_updated'].includes(event.type)) {
         this.loadMyTasks(true);
       }
@@ -61,6 +68,7 @@ export class EngineerTasksComponent implements OnInit {
 
   ngOnDestroy(): void {
     this.realtimeSub?.unsubscribe();
+    this.stopSilentSync();
   }
 
   goBack(): void {
@@ -394,5 +402,21 @@ export class EngineerTasksComponent implements OnInit {
     if (action === 'parts')
       return 'Parts requested for maintenance work order.';
     return 'Maintenance progress updated.';
+  }
+
+  private startSilentSync(): void {
+    if (this.silentSyncSub) {
+      return;
+    }
+    this.silentSyncSub = interval(5000).subscribe(() => {
+      if (!this.submitting) {
+        this.loadMyTasks(true);
+      }
+    });
+  }
+
+  private stopSilentSync(): void {
+    this.silentSyncSub?.unsubscribe();
+    this.silentSyncSub = undefined;
   }
 }

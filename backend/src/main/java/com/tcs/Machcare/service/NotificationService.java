@@ -4,15 +4,20 @@ import com.tcs.Machcare.entity.Notification;
 import com.tcs.Machcare.entity.Employee;
 import com.tcs.Machcare.repository.EmployeeRepository;
 import com.tcs.Machcare.repository.NotificationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class NotificationService {
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+
     private final NotificationRepository notificationRepository;
     private final RealtimeEventService realtimeEventService;
     private final EmployeeRepository employeeRepository;
@@ -42,7 +47,7 @@ public class NotificationService {
         notification.setRecipientEmpId(empId);
         fill(notification, title, message, category, severity, referenceType, referenceId);
         Notification saved = notificationRepository.save(notification);
-        realtimeEventService.emitToUser(empId, "notification", saved);
+        realtimeEventService.emitToUser(empId, "notification", notificationPayload(saved));
         realtimeEventService.emitToUser(empId, "notifications_updated", unreadCount(empId, 0));
         return saved;
     }
@@ -50,7 +55,11 @@ public class NotificationService {
     @Transactional
     public Notification notifyRole(Integer roleId, String title, String message, String category, String severity, String referenceType, String referenceId) {
         Notification firstSaved = null;
-        for (Employee employee : employeeRepository.findByRoleIdAndIsActiveTrue(roleId)) {
+        List<Employee> recipients = employeeRepository.findByRoleIdAndIsActiveTrue(roleId);
+        if (recipients.isEmpty()) {
+            log.warn("No active recipients found for roleId={} while creating notification '{}'", roleId, title);
+        }
+        for (Employee employee : recipients) {
             Notification saved = notifyUser(
                     employee.getEmpId(),
                     title,
@@ -98,5 +107,20 @@ public class NotificationService {
         notification.setReferenceId(referenceId);
         notification.setRead(false);
         notification.setCreatedAt(LocalDateTime.now());
+    }
+
+    private Map<String, Object> notificationPayload(Notification notification) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("notificationId", notification.getNotificationId());
+        payload.put("recipientEmpId", notification.getRecipientEmpId());
+        payload.put("title", notification.getTitle());
+        payload.put("message", notification.getMessage());
+        payload.put("category", notification.getCategory());
+        payload.put("severity", notification.getSeverity());
+        payload.put("referenceType", notification.getReferenceType());
+        payload.put("referenceId", notification.getReferenceId());
+        payload.put("read", Boolean.TRUE.equals(notification.getRead()));
+        payload.put("createdAt", notification.getCreatedAt() != null ? notification.getCreatedAt().toString() : null);
+        return payload;
     }
 }
