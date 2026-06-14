@@ -137,7 +137,7 @@ The default local profile expects:
 Database: machcare
 Schema: dev
 Username: postgres
-Password: <removed-local-db-password>
+Password: set through LOCAL_DB_PASSWORD
 Port: 5432
 ```
 
@@ -174,6 +174,7 @@ DB_USERNAME=<production-db-user>
 DB_PASSWORD=<production-db-password>
 JWT_SECRET=<at-least-32-byte-secret>
 JWT_EXPIRATION_MS=86400000
+DB_SCHEMA=dev
 SERVER_PORT=8080
 JPA_DDL_AUTO=update
 ```
@@ -351,12 +352,12 @@ Seeded demo users:
 Admin:     admin.demo@machcare.me
 Engineer:  engineer.demo@machcare.me
 Operator:  operator.demo@machcare.me
-Password:  <removed-demo-password>
+Password:  configured through DEMO_PASSWORD
 ```
 
 Additional demo engineers/operators may also be created by the seeder.
 
-Do not use demo credentials as real production credentials.
+Do not commit real demo or production credentials to Git.
 
 ## Troubleshooting
 

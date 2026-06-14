@@ -57,7 +57,11 @@ pipeline {
                 dir('backend') {
                     sh 'chmod +x mvnw'
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        sh './mvnw test'
+                        sh '''
+                            set -eu
+                            [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
+                            ./mvnw test
+                        '''
                     }
                 }
             }
@@ -66,7 +70,11 @@ pipeline {
         stage('Build Backend WAR') {
             steps {
                 dir('backend') {
-                    sh './mvnw clean package -DskipTests'
+                    sh '''
+                        set -eu
+                        [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
+                        ./mvnw clean package -DskipTests
+                    '''
                 }
             }
         }
@@ -85,6 +93,7 @@ pipeline {
             steps {
                 sh '''
                     set -eu
+                    [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
                     curl -fsSI "$APP_URL/" >/dev/null
                     curl -fsSI "$APP_URL/machcare/" >/dev/null
                     INDEX_HTML="$(curl -fsS "$APP_URL/machcare/")"
@@ -97,10 +106,21 @@ pipeline {
                         | while read -r asset; do
                             curl -fsS "$APP_URL$asset" -o /dev/null
                         done
-                    curl -fsS -X POST "$APP_URL/machcare/api/auth/login" \
-                        -H 'Content-Type: application/json' \
-                        --data '{"email":"vikash@gmail.com","password":"<removed-demo-password>"}' \
-                        | grep -q '"success":true'
+                    if [ -n "${SMOKE_LOGIN_EMAIL:-}" ] && [ -n "${SMOKE_LOGIN_PASSWORD:-}" ]; then
+                        LOGIN_PAYLOAD="$(python3 - <<'PY'
+import json
+import os
+print(json.dumps({
+    "email": os.environ["SMOKE_LOGIN_EMAIL"],
+    "password": os.environ["SMOKE_LOGIN_PASSWORD"],
+}))
+PY
+)"
+                        curl -fsS -X POST "$APP_URL/machcare/api/auth/login" \
+                            -H 'Content-Type: application/json' \
+                            --data "$LOGIN_PAYLOAD" \
+                            | grep -q '"success":true'
+                    fi
                 '''
             }
         }

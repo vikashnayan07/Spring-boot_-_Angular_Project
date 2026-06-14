@@ -27,6 +27,7 @@ import com.tcs.Machcare.repository.PartRepository;
 import com.tcs.Machcare.repository.PartUsageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +46,9 @@ import java.util.List;
 public class DemoDataSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataSeeder.class);
-    private static final String DEMO_PASSWORD = "<removed-demo-password>";
+
+    @Value("${app.demo.password:${DEMO_PASSWORD:MachCare-Demo-Password-Change-Me}}")
+    private String demoPassword;
 
     @Bean
     CommandLineRunner seedDemoData(
@@ -94,7 +97,7 @@ public class DemoDataSeeder {
 
         Login login = logins.findByUsername(email).orElseGet(Login::new);
         login.setUsername(email);
-        login.setPassword(passwordEncoder.encode(DEMO_PASSWORD));
+        login.setPassword(passwordEncoder.encode(demoPassword));
         login.setEmpId(employee.getEmpId());
         login.setSecurityQuestion1("Demo question 1");
         login.setSecurityAnswer1("demo");
