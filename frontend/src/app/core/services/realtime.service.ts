@@ -13,6 +13,7 @@ export class RealtimeService {
   private socket: WebSocket | null = null;
   private activeToken: string | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
   private readonly eventSubject = new Subject<RealtimeMessage>();
   readonly events$ = this.eventSubject.asObservable();
 
@@ -35,6 +36,7 @@ export class RealtimeService {
 
     this.disconnect();
     this.activeToken = token;
+    this.reconnectAttempts = 0;
     this.connectWebSocket(token);
   }
 
@@ -43,6 +45,7 @@ export class RealtimeService {
     this.socket = new WebSocket(socketUrl);
 
     this.socket.onopen = () => {
+      this.reconnectAttempts = 0;
       this.reconnectTimer = null;
     };
 
@@ -59,7 +62,14 @@ export class RealtimeService {
         if (this.reconnectTimer) {
           clearTimeout(this.reconnectTimer);
         }
-        this.reconnectTimer = setTimeout(() => this.connect(), 3000);
+        this.zone.run(() =>
+          this.eventSubject.next({
+            type: 'realtime_unavailable',
+            payload: { transport: 'websocket' },
+          }),
+        );
+        const delay = Math.min(30000, 3000 * Math.max(1, ++this.reconnectAttempts));
+        this.reconnectTimer = setTimeout(() => this.connectWebSocket(token), delay);
       }
     };
   }
@@ -76,6 +86,7 @@ export class RealtimeService {
     }
     this.socket = null;
     this.activeToken = null;
+    this.reconnectAttempts = 0;
   }
 
   private buildWebSocketUrl(token: string): string {

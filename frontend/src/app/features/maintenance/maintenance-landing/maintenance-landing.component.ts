@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { forkJoin, interval, of, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AlertService } from '../../../core/services/alert-service';
 import { ScheduleService } from '../../../core/services/schedule.service';
@@ -61,6 +61,7 @@ export class MaintenanceLandingComponent implements OnInit {
   selectedHistory: any | null = null;
   pendingAssignAlert: any | null = null;
   private realtimeSub?: Subscription;
+  private silentSyncSub?: Subscription;
 
   alerts: any[] = [];
   schedules: any[] = [];
@@ -97,6 +98,12 @@ export class MaintenanceLandingComponent implements OnInit {
     this.loadCommandCenter();
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
+      if (event.type === 'connected' || event.type === 'heartbeat') {
+        this.stopSilentSync();
+      }
+      if (event.type === 'realtime_unavailable') {
+        this.startSilentSync();
+      }
       if (['maintenance_updated', 'alerts_updated', 'faults_updated', 'tasks_updated'].includes(event.type)) {
         this.applyRealtimePayload(event.payload);
         this.loadCommandCenter(true);
@@ -106,6 +113,7 @@ export class MaintenanceLandingComponent implements OnInit {
 
   ngOnDestroy(): void {
     this.realtimeSub?.unsubscribe();
+    this.stopSilentSync();
   }
 
   goBack(): void {
@@ -464,6 +472,22 @@ export class MaintenanceLandingComponent implements OnInit {
       );
       this.schedules = [payload, ...existing];
     }
+  }
+
+  private startSilentSync(): void {
+    if (!this.isAdmin || this.silentSyncSub) {
+      return;
+    }
+    this.silentSyncSub = interval(5000).subscribe(() => {
+      if (!this.assigningAlertId) {
+        this.loadCommandCenter(true);
+      }
+    });
+  }
+
+  private stopSilentSync(): void {
+    this.silentSyncSub?.unsubscribe();
+    this.silentSyncSub = undefined;
   }
 
   private matchesTerm(item: any, term: string, fields: string[]): boolean {

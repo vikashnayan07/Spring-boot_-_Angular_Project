@@ -6,6 +6,7 @@ import com.tcs.Machcare.util.Jwtutil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +25,20 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> list(@RequestHeader("Authorization") String token) {
-        Long empId = jwtUtil.extractEmpId(token);
-        Integer roleId = jwtUtil.extractRoleId(token);
-        List<Notification> notifications = notificationService.listFor(empId, roleId);
         Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("data", notifications);
-        response.put("unreadCount", notificationService.unreadCount(empId, roleId));
+        try {
+            Long empId = jwtUtil.extractEmpId(token);
+            Integer roleId = jwtUtil.extractRoleId(token);
+            List<Notification> notifications = notificationService.listFor(empId, roleId);
+            response.put("success", true);
+            response.put("data", notifications);
+            response.put("unreadCount", notificationService.unreadCount(empId, roleId));
+        } catch (RuntimeException ex) {
+            response.put("success", true);
+            response.put("data", Collections.emptyList());
+            response.put("unreadCount", 0);
+            response.put("warning", "Notifications are temporarily unavailable.");
+        }
         return ResponseEntity.ok(response);
     }
 
