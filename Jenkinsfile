@@ -20,6 +20,7 @@ pipeline {
         stage('Prepare Workspace') {
             steps {
                 sh '''
+                    set +x
                     set -eu
                     sudo chown -R "$(id -un):$(id -gn)" "$WORKSPACE/backend" "$WORKSPACE/frontend" || true
                     rm -rf backend/target frontend/dist frontend/.angular/cache
@@ -69,6 +70,7 @@ pipeline {
                     sh 'chmod +x mvnw'
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         sh '''
+                            set +x
                             set -eu
                             [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
                             ./mvnw test
@@ -82,6 +84,7 @@ pipeline {
             steps {
                 dir('backend') {
                     sh '''
+                        set +x
                         set -eu
                         [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
                         ./mvnw clean package -DskipTests
@@ -93,6 +96,7 @@ pipeline {
         stage('Deploy To Tomcat') {
             steps {
                 sh '''
+                    set +x
                     rm -f .jenkins-deployed
                     sudo /usr/local/bin/machcare-deploy deploy "$WAR_PATH"
                     touch .jenkins-deployed
@@ -103,6 +107,7 @@ pipeline {
         stage('Verify Production') {
             steps {
                 sh '''
+                    set +x
                     set -eu
                     [ ! -f /etc/profile.d/machcare-ci-env.sh ] || . /etc/profile.d/machcare-ci-env.sh
                     curl -fsSI "$APP_URL/" >/dev/null
