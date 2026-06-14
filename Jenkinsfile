@@ -17,6 +17,17 @@ pipeline {
     }
 
     stages {
+        stage('Prepare Workspace') {
+            steps {
+                sh '''
+                    set -eu
+                    sudo chown -R "$(id -un):$(id -gn)" "$WORKSPACE/backend" "$WORKSPACE/frontend" || true
+                    rm -rf backend/target frontend/dist frontend/.angular/cache
+                    chmod +x backend/mvnw
+                '''
+            }
+        }
+
         stage('Install Frontend Dependencies') {
             steps {
                 dir('frontend') {
