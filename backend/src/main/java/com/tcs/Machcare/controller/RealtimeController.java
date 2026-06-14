@@ -4,8 +4,11 @@ import com.tcs.Machcare.service.RealtimeEventService;
 import com.tcs.Machcare.util.Jwtutil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/realtime")
@@ -27,5 +30,16 @@ public class RealtimeController {
         Long empId = jwtUtil.extractEmpId(token);
         Integer roleId = jwtUtil.extractRoleId(token);
         return realtimeEventService.connect(empId, roleId);
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> status(@RequestHeader("Authorization") String token) {
+        if (jwtUtil.extractRoleId(token) != 1) {
+            return ResponseEntity.status(403).body(Map.of("success", false));
+        }
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "connections", realtimeEventService.snapshot()
+        ));
     }
 }

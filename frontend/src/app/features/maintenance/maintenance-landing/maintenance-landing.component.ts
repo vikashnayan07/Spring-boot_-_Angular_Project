@@ -98,6 +98,7 @@ export class MaintenanceLandingComponent implements OnInit {
     this.realtimeService.connect();
     this.realtimeSub = this.realtimeService.events$.subscribe((event) => {
       if (['maintenance_updated', 'alerts_updated', 'faults_updated', 'tasks_updated'].includes(event.type)) {
+        this.applyRealtimePayload(event.payload);
         this.loadCommandCenter(true);
       }
     });
@@ -440,6 +441,29 @@ export class MaintenanceLandingComponent implements OnInit {
     if (Array.isArray(response?.data)) return response.data;
     if (Array.isArray(response?.tasks)) return response.tasks;
     return [];
+  }
+
+  private applyRealtimePayload(payload: any): void {
+    if (!payload || !this.isAdmin) {
+      return;
+    }
+    if (payload.kind === 'alert' && payload.alertId) {
+      const nextAlert = {
+        ...payload,
+        status: payload.status || 'Open',
+      };
+      const existing = this.alerts.filter(
+        (alert) => Number(alert.alertId) !== Number(payload.alertId),
+      );
+      this.alerts = [nextAlert, ...existing];
+      this.activeTab = 'alerts';
+    }
+    if (payload.kind === 'schedule' && payload.scheduleId) {
+      const existing = this.schedules.filter(
+        (schedule) => Number(schedule.scheduleId) !== Number(payload.scheduleId),
+      );
+      this.schedules = [payload, ...existing];
+    }
   }
 
   private matchesTerm(item: any, term: string, fields: string[]): boolean {

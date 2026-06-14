@@ -8,6 +8,7 @@ import com.tcs.Machcare.exception.ConflictException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import com.tcs.Machcare.entity.*;
 import com.tcs.Machcare.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,8 +232,9 @@ public class MachCareCoreService {
                 String.valueOf(generatedAlert.getSeverity()),
                 "ALERT",
                 String.valueOf(generatedAlert.getAlertId()));
-        realtimeEventService.emitToRole(1, "maintenance_updated", generatedAlert);
-        realtimeEventService.emitToRole(1, "alerts_updated", generatedAlert);
+        Map<String, Object> alertEvent = alertEventPayload(generatedAlert);
+        realtimeEventService.emitToRole(1, "maintenance_updated", alertEvent);
+        realtimeEventService.emitToRole(1, "alerts_updated", alertEvent);
 
         return generatedAlert;
     }
@@ -289,10 +291,41 @@ public class MachCareCoreService {
                 "Info",
                 "SCHEDULE",
                 String.valueOf(savedSchedule.getScheduleId()));
-        realtimeEventService.emitToUser(bestEngineerId, "tasks_updated", savedSchedule);
-        realtimeEventService.emitToRole(1, "maintenance_updated", savedSchedule);
+        Map<String, Object> scheduleEvent = scheduleEventPayload(savedSchedule);
+        realtimeEventService.emitToUser(bestEngineerId, "tasks_updated", scheduleEvent);
+        realtimeEventService.emitToRole(1, "maintenance_updated", scheduleEvent);
 
         return savedSchedule;
+    }
+
+    private Map<String, Object> alertEventPayload(MachineAlert alert) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("kind", "alert");
+        payload.put("alertId", alert.getAlertId());
+        payload.put("machineId", alert.getMachineId());
+        payload.put("analysisId", alert.getAnalysisId());
+        payload.put("linkedAnalysisId", alert.getLinkedAnalysisId());
+        payload.put("linkedFaultId", alert.getLinkedFaultId());
+        payload.put("issueName", alert.getIssueName());
+        payload.put("severity", alert.getSeverity() != null ? alert.getSeverity().name() : null);
+        payload.put("priority", alert.getPriority() != null ? alert.getPriority().name() : null);
+        payload.put("empId", alert.getEmpId());
+        payload.put("alertPriority", alert.getAlertPriority());
+        payload.put("alertReason", alert.getAlertReason());
+        payload.put("generatedBySystem", alert.getGeneratedBySystem());
+        return payload;
+    }
+
+    private Map<String, Object> scheduleEventPayload(MaintenanceSchedule schedule) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("kind", "schedule");
+        payload.put("scheduleId", schedule.getScheduleId());
+        payload.put("alertId", schedule.getAlertId());
+        payload.put("machineId", schedule.getMachineId());
+        payload.put("empId", schedule.getEmpId());
+        payload.put("status", schedule.getStatus() != null ? schedule.getStatus().name() : null);
+        payload.put("scheduleDate", schedule.getScheduleDate() != null ? schedule.getScheduleDate().toString() : null);
+        return payload;
     }
 
     public List<MaintenanceSchedule> viewAllSchedules(Long adminEmpId) {

@@ -1,6 +1,8 @@
 package com.tcs.Machcare.service;
 
 import com.tcs.Machcare.dto.RealtimeEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -18,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class RealtimeEventService {
+    private static final Logger log = LoggerFactory.getLogger(RealtimeEventService.class);
     private static final long SSE_TIMEOUT_MS = 30L * 60L * 1000L;
 
     private final Map<Long, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
@@ -28,6 +31,7 @@ public class RealtimeEventService {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
         userEmitters.computeIfAbsent(empId, ignored -> new CopyOnWriteArrayList<>()).add(emitter);
         roleEmitters.computeIfAbsent(roleId, ignored -> new CopyOnWriteArrayList<>()).add(emitter);
+        log.info("SSE connected empId={} roleId={} roleConnections={}", empId, roleId, connectionCountForRole(roleId));
         ScheduledFuture<?> heartbeat = heartbeatExecutor.scheduleAtFixedRate(
                 () -> sendToEmitter(emitter, new RealtimeEvent("heartbeat", Map.of("empId", empId))),
                 20,
@@ -77,17 +81,32 @@ public class RealtimeEventService {
 
     private void emit(List<SseEmitter> emitters, RealtimeEvent event) {
         if (emitters == null || emitters.isEmpty()) {
+            log.info("SSE event skipped type={} because no active subscribers", event.getType());
             return;
         }
+        log.info("SSE emitting type={} subscribers={}", event.getType(), emitters.size());
         emitters.forEach(emitter -> sendToEmitter(emitter, event));
     }
 
     private void sendToEmitter(SseEmitter emitter, RealtimeEvent event) {
         try {
             emitter.send(SseEmitter.event().name(event.getType()).data(event));
-        } catch (IOException | IllegalStateException ex) {
+        } catch (IOException | RuntimeException ex) {
+            log.warn("SSE send failed for type={}: {}", event.getType(), ex.getMessage());
             emitter.completeWithError(ex);
         }
+    }
+
+    public Map<String, Object> snapshot() {
+        Map<String, Object> snapshot = new ConcurrentHashMap<>();
+        userEmitters.forEach((empId, emitters) -> snapshot.put("user:" + empId, emitters.size()));
+        roleEmitters.forEach((roleId, emitters) -> snapshot.put("role:" + roleId, emitters.size()));
+        return snapshot;
+    }
+
+    private int connectionCountForRole(Integer roleId) {
+        List<SseEmitter> emitters = roleEmitters.get(roleId);
+        return emitters == null ? 0 : emitters.size();
     }
 
     private <T> void remove(Map<T, List<SseEmitter>> registry, T key, SseEmitter emitter) {
