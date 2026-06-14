@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/realtime/stream").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/realtime/ws").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/realtime/status").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/machcare/**",
                                 "/admin/**",

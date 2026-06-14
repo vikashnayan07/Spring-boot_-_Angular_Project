@@ -10,11 +10,9 @@ export interface RealtimeMessage {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
-  private source: EventSource | null = null;
   private socket: WebSocket | null = null;
   private activeToken: string | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private fallbackTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly eventSubject = new Subject<RealtimeMessage>();
   readonly events$ = this.eventSubject.asObservable();
 
@@ -29,8 +27,7 @@ export class RealtimeService {
 
     if (
       this.activeToken === token &&
-      (this.source ||
-        this.socket?.readyState === WebSocket.OPEN ||
+      (this.socket?.readyState === WebSocket.OPEN ||
         this.socket?.readyState === WebSocket.CONNECTING)
     ) {
       return;
@@ -45,24 +42,8 @@ export class RealtimeService {
     const socketUrl = this.buildWebSocketUrl(token);
     this.socket = new WebSocket(socketUrl);
 
-    this.fallbackTimer = setTimeout(() => {
-      if (this.socket?.readyState !== WebSocket.OPEN) {
-        const pendingSocket = this.socket;
-        this.socket = null;
-        if (pendingSocket) {
-          pendingSocket.onclose = null;
-          pendingSocket.onerror = null;
-          pendingSocket.close();
-        }
-        this.connectEventSource(token);
-      }
-    }, 3000);
-
     this.socket.onopen = () => {
-      if (this.fallbackTimer) {
-        clearTimeout(this.fallbackTimer);
-        this.fallbackTimer = null;
-      }
+      this.reconnectTimer = null;
     };
 
     this.socket.onmessage = (message) => {
@@ -74,41 +55,12 @@ export class RealtimeService {
     };
 
     this.socket.onclose = () => {
-      if (this.fallbackTimer) {
-        clearTimeout(this.fallbackTimer);
-        this.fallbackTimer = null;
-      }
       if (this.activeToken === token) {
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+        }
         this.reconnectTimer = setTimeout(() => this.connect(), 3000);
       }
-    };
-  }
-
-  private connectEventSource(token: string): void {
-    const streamUrl = `${API_BASE_URL}/realtime/stream?token=${encodeURIComponent(token)}`;
-    this.source = new EventSource(streamUrl);
-
-    [
-      'connected',
-      'heartbeat',
-      'notification',
-      'notifications_updated',
-      'maintenance_updated',
-      'alerts_updated',
-      'faults_updated',
-      'tasks_updated',
-      'employees_updated',
-      'suspension_updated',
-      'session_status_updated',
-    ].forEach((eventName) => {
-      this.source?.addEventListener(eventName, (event: MessageEvent) => {
-        this.zone.run(() => this.eventSubject.next(this.parseEvent(eventName, event)));
-      });
-    });
-
-    this.source.onerror = () => {
-      this.disconnect();
-      this.reconnectTimer = setTimeout(() => this.connect(), 3000);
     };
   }
 
@@ -117,17 +69,11 @@ export class RealtimeService {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    if (this.fallbackTimer) {
-      clearTimeout(this.fallbackTimer);
-      this.fallbackTimer = null;
-    }
-    this.source?.close();
     if (this.socket) {
       this.socket.onclose = null;
       this.socket.onerror = null;
       this.socket.close();
     }
-    this.source = null;
     this.socket = null;
     this.activeToken = null;
   }
@@ -151,19 +97,6 @@ export class RealtimeService {
       };
     } catch {
       return { type: 'message', payload: data };
-    }
-  }
-
-  private parseEvent(type: string, event: MessageEvent): RealtimeMessage {
-    try {
-      const parsed = JSON.parse(event.data);
-      return {
-        type: parsed.type || type,
-        payload: parsed.payload ?? parsed,
-        timestamp: parsed.timestamp,
-      };
-    } catch {
-      return { type, payload: event.data };
     }
   }
 }

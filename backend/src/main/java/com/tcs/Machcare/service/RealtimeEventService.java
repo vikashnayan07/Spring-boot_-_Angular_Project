@@ -66,7 +66,13 @@ public class RealtimeEventService {
     public void connectWebSocket(Long empId, Integer roleId, WebSocketSession session) {
         userSockets.computeIfAbsent(empId, ignored -> new CopyOnWriteArrayList<>()).add(session);
         roleSockets.computeIfAbsent(roleId, ignored -> new CopyOnWriteArrayList<>()).add(session);
-        socketRegistrations.put(session.getId(), new SocketRegistration(empId, roleId));
+        ScheduledFuture<?> heartbeat = heartbeatExecutor.scheduleAtFixedRate(
+                () -> sendToSocket(session, new RealtimeEvent("heartbeat", Map.of("empId", empId, "transport", "websocket"))),
+                15,
+                15,
+                TimeUnit.SECONDS
+        );
+        socketRegistrations.put(session.getId(), new SocketRegistration(empId, roleId, heartbeat));
         log.info("WebSocket connected empId={} roleId={} roleConnections={}", empId, roleId, socketCountForRole(roleId));
         sendToSocket(session, new RealtimeEvent("connected", Map.of("empId", empId, "roleId", roleId, "transport", "websocket")));
     }
@@ -76,6 +82,7 @@ public class RealtimeEventService {
         if (registration == null) {
             return;
         }
+        registration.heartbeat().cancel(true);
         removeSocket(userSockets, registration.empId(), session);
         removeSocket(roleSockets, registration.roleId(), session);
         log.info("WebSocket disconnected empId={} roleId={}", registration.empId(), registration.roleId());
@@ -202,5 +209,5 @@ public class RealtimeEventService {
         }
     }
 
-    private record SocketRegistration(Long empId, Integer roleId) {}
+    private record SocketRegistration(Long empId, Integer roleId, ScheduledFuture<?> heartbeat) {}
 }

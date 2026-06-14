@@ -33,7 +33,13 @@ public class RealtimeController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> status(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Map<String, Object>> status(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String queryToken) {
+        String token = authorization != null && !authorization.isBlank() ? authorization : queryToken;
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Missing token."));
+        }
         if (jwtUtil.extractRoleId(token) != 1) {
             return ResponseEntity.status(403).body(Map.of("success", false));
         }
