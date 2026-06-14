@@ -13,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
-@CrossOrigin(origins = "*")
 public class NotificationController {
     private final NotificationService notificationService;
     private final Jwtutil jwtUtil;

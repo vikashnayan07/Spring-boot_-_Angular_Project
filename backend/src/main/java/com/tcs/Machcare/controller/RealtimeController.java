@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/realtime")
-@CrossOrigin(origins = "*")
 public class RealtimeController {
     private final RealtimeEventService realtimeEventService;
     private final Jwtutil jwtUtil;
