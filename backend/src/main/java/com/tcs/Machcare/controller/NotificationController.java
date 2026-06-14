@@ -24,8 +24,16 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> list(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Map<String, Object>> list(
+            @RequestHeader(value = "Authorization", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
+        if (token == null || token.isBlank()) {
+            response.put("success", true);
+            response.put("data", Collections.emptyList());
+            response.put("unreadCount", 0);
+            response.put("warning", "Missing authentication token.");
+            return ResponseEntity.ok(response);
+        }
         try {
             Long empId = jwtUtil.extractEmpId(token);
             Integer roleId = jwtUtil.extractRoleId(token);
