@@ -22,7 +22,7 @@ pipeline {
                 sh '''
                     set +x
                     set -eu
-                    sudo chown -R "$(id -un):$(id -gn)" "$WORKSPACE/backend" "$WORKSPACE/frontend" || true
+                    sudo -n chown -R "$(id -un):$(id -gn)" "$WORKSPACE/backend" "$WORKSPACE/frontend" 2>/dev/null || true
                     rm -rf backend/target frontend/dist frontend/.angular/cache
                     chmod +x backend/mvnw
                 '''

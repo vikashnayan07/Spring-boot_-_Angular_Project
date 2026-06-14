@@ -24,12 +24,28 @@ import com.tcs.Machcare.entity.Severity;
 import com.tcs.Machcare.exception.ResourceNotFoundException;
 import com.tcs.Machcare.repository.FaultLogRepository;
 import com.tcs.Machcare.service.FaultLogService;
+import com.tcs.Machcare.service.MachineMetricsService;
+import com.tcs.Machcare.service.NotificationService;
+import com.tcs.Machcare.service.PriorityQueueService;
+import com.tcs.Machcare.service.RealtimeEventService;
 
 @ExtendWith(MockitoExtension.class)
 class FaultLogServiceTest {
 
     @Mock
     private FaultLogRepository repository;
+
+    @Mock
+    private PriorityQueueService priorityQueueService;
+
+    @Mock
+    private MachineMetricsService metricsService;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private RealtimeEventService realtimeEventService;
 
     @InjectMocks
     private FaultLogService service;
@@ -57,6 +73,12 @@ class FaultLogServiceTest {
         faultLog.setReportedByName(empName);
         faultLog.setFaultDate(LocalDate.now());
         faultLog.setFaultTime(LocalTime.now().withNano(0));
+
+        lenient().when(priorityQueueService.applyPriority(any(FaultLog.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(metricsService.mttrMinutes(any())).thenReturn(0.0);
+        lenient().when(metricsService.expectedMttrMinutes(any())).thenReturn(0.0);
+        lenient().when(metricsService.mtbfHours(any())).thenReturn(0.0);
     }
 
     // ================= POSITIVE TESTS =================
@@ -258,18 +280,14 @@ class FaultLogServiceTest {
     }
 
     @Test
-    void nullDescription_shouldWork() {
+    void nullDescription_shouldThrowException() {
 
         dto.setDescription(null);
 
-        when(repository.findAll()).thenReturn(Collections.emptyList());
-
-        when(repository.save(any(FaultLog.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        FaultLog result = service.createFault(dto, empId, empName);
-
-        assertNull(result.getDescription());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.createFault(dto, empId, empName)
+        );
     }
     
     @Test

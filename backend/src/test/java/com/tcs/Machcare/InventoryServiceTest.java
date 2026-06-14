@@ -6,8 +6,10 @@ import com.tcs.Machcare.entity.PartUsage;
 import com.tcs.Machcare.exception.InventoryException;
 import com.tcs.Machcare.repository.PartRepository;
 import com.tcs.Machcare.repository.PartUsageRepository;
+import com.tcs.Machcare.service.AssetLifecycleService;
 import com.tcs.Machcare.service.InventoryService;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -26,8 +28,17 @@ class InventoryServiceTest {
 
     @Mock private PartRepository partRepository;
     @Mock private PartUsageRepository partUsageRepository;
+    @Mock private AssetLifecycleService assetLifecycleService;
 
     @InjectMocks private InventoryService inventoryService;
+
+    @BeforeEach
+    void setup() {
+        lenient().when(partRepository.save(any(Part.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(assetLifecycleService.refreshPartLifecycle(any(Part.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     // =================================================
     // ✅ usePart() TESTS (20 TEST CASES)

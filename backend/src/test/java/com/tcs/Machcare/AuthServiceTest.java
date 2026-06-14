@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,6 +30,7 @@ class AuthServiceTest {
 
     private Employee employee;
     private Login login;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @BeforeEach
     void setup() {
@@ -39,7 +41,7 @@ class AuthServiceTest {
 
         login = new Login();
         login.setUsername("test@mail.com");
-        login.setPassword("Test@1234");
+        login.setPassword(passwordEncoder.encode("Test@1234"));
         login.setEmpId(1L);
     }
 
@@ -154,19 +156,16 @@ class AuthServiceTest {
                 () -> authService.registerEmployee(req));
     }
 
-    @Test void register_nullPassword() {
+    @Test void register_nullPassword_shouldThrowException() {
         RegisterRequest req = new RegisterRequest();
         req.setName("x");
         req.setEmail("x@mail.com");
         req.setRole(RoleType.Admin);
 
-        Employee e = new Employee();
-        e.setEmpId(1L);
-        when(empRepo.save(any())).thenReturn(e);
-
-        authService.registerEmployee(req);
-
-        verify(loginRepo).save(any());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.registerEmployee(req)
+        );
     }
 
     // create variations up to 35
@@ -174,9 +173,10 @@ class AuthServiceTest {
         RegisterRequest req = new RegisterRequest();
         req.setRole(RoleType.Admin);
 
-        when(empRepo.save(any())).thenReturn(new Employee());
-
-        assertDoesNotThrow(() -> authService.registerEmployee(req));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.registerEmployee(req)
+        );
     }
 
     // ============================
@@ -200,27 +200,24 @@ class AuthServiceTest {
     }
 
     @Test void disable_zeroDays() {
-        when(empRepo.findById(1L)).thenReturn(Optional.of(employee));
-
-        authService.disableAccount(1L,0);
-
-        assertNotNull(employee.getSuspensionEndDate());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.disableAccount(1L,0)
+        );
     }
 
     @Test void disable_negativeDays() {
-        when(empRepo.findById(1L)).thenReturn(Optional.of(employee));
-
-        authService.disableAccount(1L,-2);
-
-        assertNotNull(employee.getSuspensionEndDate());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.disableAccount(1L,-2)
+        );
     }
 
     @Test void disable_largeDays() {
-        when(empRepo.findById(1L)).thenReturn(Optional.of(employee));
-
-        authService.disableAccount(1L,3650);
-
-        assertTrue(employee.getSuspensionEndDate().isAfter(LocalDateTime.now()));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> authService.disableAccount(1L,3650)
+        );
     }
 
     // remaining filler validations

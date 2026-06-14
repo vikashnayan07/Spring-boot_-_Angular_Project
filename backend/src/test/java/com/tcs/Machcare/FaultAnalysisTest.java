@@ -486,6 +486,8 @@ import org.mockito.*;
 import com.tcs.Machcare.entity.*;
 import com.tcs.Machcare.repository.*;
 import com.tcs.Machcare.service.FaultAnalysisService;
+import com.tcs.Machcare.service.MachineMetricsService;
+import com.tcs.Machcare.service.RiskBasedAlertService;
 
 class FaultAnalysisServiceTest {
 
@@ -498,12 +500,31 @@ class FaultAnalysisServiceTest {
     @Mock
     private MaintenanceHistoryRepository historyRepo;
 
+    @Mock
+    private MachineMetricsService metricsService;
+
+    @Mock
+    private RiskBasedAlertService alertService;
+
     @InjectMocks
     private FaultAnalysisService service;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+        lenient().when(metricsService.faultsInLastDays(any(), anyInt())).thenReturn(1L);
+        lenient().when(metricsService.severityScore(any())).thenReturn(20.0);
+        lenient().when(metricsService.frequencyScore(any())).thenReturn(10.0);
+        lenient().when(metricsService.mtbfScore(any())).thenReturn(10.0);
+        lenient().when(metricsService.mttrScore(any())).thenReturn(10.0);
+        lenient().when(metricsService.productionImpactScore(any())).thenReturn(10.0);
+        lenient().when(metricsService.mtbfHours(any())).thenReturn(120.0);
+        lenient().when(metricsService.mttrMinutes(any())).thenReturn(0.0);
+        lenient().when(metricsService.expectedMttrMinutes(any())).thenReturn(0.0);
+        lenient().when(metricsService.score(anyDouble())).thenAnswer(i -> BigDecimal.valueOf(i.getArgument(0, Double.class)));
+        lenient().when(metricsService.healthStatus(anyDouble())).thenReturn("Healthy");
+        lenient().when(metricsService.failureTrend(any())).thenReturn("Stable");
+        lenient().when(alertService.evaluateAndGenerate(any(), any())).thenReturn(null);
     }
 
     // ✅ Helper method
@@ -514,6 +535,7 @@ class FaultAnalysisServiceTest {
         fault.setFaultDate(LocalDate.now());
         fault.setFaultTime(LocalTime.of(10, 0));
         fault.setSeverity(Severity.valueOf(severity));
+        fault.setPriorityLevel("Critical".equals(severity) || "High".equals(severity) ? "P1" : "P2");
         return fault;
     }
 
@@ -581,6 +603,7 @@ class FaultAnalysisServiceTest {
 
         when(faultRepo.findById("F1")).thenReturn(java.util.Optional.of(fault));
         when(faultRepo.findAll()).thenReturn(Arrays.asList(fault, fault, fault));
+        when(metricsService.faultsInLastDays("M001", 30)).thenReturn(3L);
         when(historyRepo.findByMachineId("M001")).thenReturn(Collections.emptyList());
         when(analysisRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -600,7 +623,7 @@ class FaultAnalysisServiceTest {
 
         FaultAnalysis result = service.generateAnalysis("F1");
 
-        assertEquals(BigDecimal.ZERO, result.getMttr());
+        assertEquals(0, BigDecimal.ZERO.compareTo(result.getMttr()));
     }
 
     @Test
@@ -676,7 +699,7 @@ class FaultAnalysisServiceTest {
 
         FaultAnalysis result = service.generateAnalysis("F1");
 
-        assertEquals(BigDecimal.ZERO, result.getMttr());
+        assertEquals(0, BigDecimal.ZERO.compareTo(result.getMttr()));
     }
 
     @Test
@@ -711,7 +734,7 @@ class FaultAnalysisServiceTest {
 
         when(faultRepo.findById("F1")).thenReturn(java.util.Optional.of(fault));
 
-        assertThrows(Exception.class, () -> service.generateAnalysis("F1"));
+        assertDoesNotThrow(() -> service.generateAnalysis("F1"));
     }
 
     @Test
